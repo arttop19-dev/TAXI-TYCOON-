@@ -3,75 +3,57 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>TAXI TYCOON: ULTIMATE CYBER</title>
-  
+  <title>TAXI TYCOON: CYBER WORLD</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-  <!-- Анимированный задний фон с частицами -->
   <canvas id="cyber-bg"></canvas>
 
-  <!-- HIGH-TECH CYBER SPLASH SCREEN -->
+  <!-- Экран загрузки -->
   <div id="splash-screen" class="screen">
-    <!-- Фоновый HUD сканер -->
     <div class="cyber-scanner-grid">
       <div class="scanner-ring ring-1"></div>
       <div class="scanner-ring ring-2"></div>
       <div class="scanner-line"></div>
     </div>
-
     <div class="splash-content">
-      <!-- Логотип с эффектом неонового свечения и глитча -->
       <div class="cyber-logo-wrapper">
-        <div class="logo-box glitch-effect" data-text="🚖">🚖</div>
+        <div class="logo-box glitch-effect">🚖</div>
         <div class="logo-glow"></div>
       </div>
-
       <h1 class="neon-title">TAXI TYCOON</h1>
-      <p class="subtitle">ULTIMATE CYBEREDITION v2.6</p>
-
-      <!-- Консоль загрузки и индикаторы -->
+      <p class="subtitle">CYBER-LUXURY EDITION</p>
+      
       <div id="loader-block" class="glass-glow loader-card">
         <div class="loader-status-row">
           <span class="status-dot"></span>
-          <span id="progress-text">INITIALIZING SYSTEM...</span>
+          <span id="progress-text">СИНХРОНИЗАЦИЯ...</span>
           <span id="progress-percent" class="percent-val">0%</span>
         </div>
-
         <div class="progress-bar-container">
-          <div class="progress-bar">
-            <div id="progress-fill"></div>
-          </div>
+          <div class="progress-bar"><div id="progress-fill"></div></div>
           <div class="bar-glow"></div>
         </div>
-
-        <!-- Живой терминал загрузки систем -->
-        <div class="terminal-box">
-          <div id="terminal-log">> Booting Cyber-Core...</div>
-        </div>
+        <div class="terminal-box"><div id="terminal-log">> Инициализация ядра...</div></div>
       </div>
 
-      <!-- Кнопка входа -->
       <div id="start-block" class="hidden">
         <div class="user-card glass-glow">
-          <img id="user-avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=Taxi" alt="Avatar">
+          <img id="user-avatar" src="" alt="Avatar">
           <div class="user-info">
-            <div id="user-name">Таксист</div>
-            <div class="user-sub"><span id="user-rating">⭐ 4.80</span> • Уровень <span id="user-level">1</span></div>
+            <div id="splash-user-name">Загрузка...</div>
+            <div class="user-sub"><span id="splash-user-rating">⭐ 0.00</span> • Уровень <span id="splash-user-level">1</span></div>
           </div>
         </div>
-        <button id="btn-start" class="btn-neon pulse-btn" onclick="startGame()">ПОДКЛЮЧИТЬСЯ К СЕТИ</button>
+        <button class="btn-neon pulse-btn" onclick="startGame()">ВОЙТИ В СЕТЬ</button>
       </div>
     </div>
   </div>
 
-  <!-- MAIN GAME -->
+  <!-- Главный интерфейс -->
   <div id="main-game" class="screen hidden">
-    
-    <!-- ВЕРХНЯЯ ПАНЕЛЬ -->
     <header class="header glass-glow">
       <div>
         <div class="label">Баланс</div>
@@ -81,7 +63,7 @@
         <div id="weather-icon">☀️</div>
         <div>
           <div id="weather-name" class="weather-title">Ясно</div>
-          <div id="weather-mult" class="weather-sub">Множитель: x1.0</div>
+          <div id="weather-mult" class="weather-sub">Тариф: x1.0</div>
         </div>
       </div>
       <div class="text-right">
@@ -89,29 +71,27 @@
         <div class="label">Ур: <span id="header-level" class="val-yellow">1</span></div>
       </div>
     </header>
-
-    <div class="exp-container">
-      <div id="exp-bar" style="width: 0%;"></div>
-    </div>
+    <div class="exp-container"><div id="exp-bar" style="width: 0%;"></div></div>
 
     <main class="content">
-      
       <div id="event-toast" class="toast hidden"></div>
 
-      <!-- ВСПЛЫВАЮЩИЙ ИНТЕРАКТИВ ПОЛИЦИИ -->
-      <div id="police-modal" class="modal hidden">
-        <div class="modal-content glass-glow red-border">
-          <div class="police-siren">🚨 POLICE INTERCEPT 🚨</div>
-          <h3>Вас пытается остановить Кибер-ДПС!</h3>
-          <p id="police-msg" style="font-size: 12px; color: #9ca3af; margin: 10px 0 15px;">Вас засекли за превышение скорости!</p>
-          <div class="modal-actions">
-            <button class="btn-neon-red" onclick="resolvePolice('bribe')">Дать взятку ($1,500)</button>
-            <button class="btn-neon" onclick="resolvePolice('escape')">Попытаться уйти (Шанс 50%)</button>
+      <!-- Модальное окно активной поездки -->
+      <div id="trip-modal" class="modal hidden">
+        <div class="modal-content glass-glow" style="max-width: 400px; padding: 25px;">
+          <h3 style="color:#f59e0b; margin-bottom: 10px;">В ПУТИ</h3>
+          <div style="display:flex; justify-content:space-between; font-size:12px; color:#9ca3af; margin-bottom:5px;">
+            <span id="trip-route">Маршрут</span>
+            <span id="trip-speed">0 км/ч</span>
           </div>
+          <div class="progress-bar-container" style="margin-bottom: 15px;">
+            <div class="progress-bar" style="height: 12px;"><div id="trip-progress-fill" style="width: 0%; background: #10b981;"></div></div>
+          </div>
+          <div id="trip-event-log" class="event-log-text" style="color:#60a5fa; font-weight:bold;">Навигатор построен. Движение начато...</div>
         </div>
       </div>
 
-      <!-- ВКЛАДКА: ЗАКАЗЫ -->
+      <!-- Вкладка: Биржа заказов -->
       <section id="tab-orders" class="tab-content">
         <div class="car-status-grid">
           <div class="status-card glass-card">
@@ -120,94 +100,63 @@
             <button class="btn-sm" onclick="refuel()">Заправить ($300)</button>
           </div>
           <div class="status-card glass-card">
-            <div class="status-title">🔧 Двигатель: <span id="engine-val">100%</span></div>
+            <div class="status-title">🔧 Состояние: <span id="engine-val">100%</span></div>
             <div class="bar"><div id="engine-bar" style="width: 100%;"></div></div>
-            <button class="btn-sm" onclick="repairEngine()">Ремонт ($500)</button>
-          </div>
-          <div class="status-card glass-card">
-            <div class="status-title">🛞 Покрышки: <span id="tires-val">100%</span></div>
-            <div class="bar"><div id="tires-bar" style="width: 100%;"></div></div>
-            <button class="btn-sm" onclick="replaceTires()">Замена ($400)</button>
-          </div>
-          <div class="status-card glass-card">
-            <div class="status-title">⚡ Тюнинг</div>
-            <div id="tuning-status-badges" class="tuning-badges">Нет апгрейдов</div>
+            <button class="btn-sm" onclick="repairCar()">Ремонт ($500)</button>
           </div>
         </div>
-
-        <div class="order-card glass-glow">
-          <div id="order-class" class="badge">ЭКОНОМ КЛАСС</div>
-          <h2 id="order-car-title" class="car-title-glow">ВАЗ-2107</h2>
-          <div id="order-reward" class="reward-val">+$400</div>
-          <div id="trip-event-log" class="event-log-text">Диспетчер: Ожидание заказа...</div>
-          <button id="btn-drive" class="btn-neon" onclick="takeOrder()">ПРИНЯТЬ ВЫЗОВ</button>
-        </div>
+        <h2 style="margin: 15px 0 10px; font-size: 16px;">Биржа заказов <span style="font-size:10px; color:#10b981; float:right; cursor:pointer;" onclick="generateOrders()">🔄 Обновить</span></h2>
+        <div id="orders-list"></div>
       </section>
 
-      <!-- ВКЛАДКА: КОНТРАКТЫ -->
-      <section id="tab-contracts" class="tab-content hidden">
-        <h2>VIP Срочные Контракты</h2>
-        <p class="sub-text">Выполняй особые миссии с повышенной наградой!</p>
-        <div id="contracts-list"></div>
-      </section>
-
-      <!-- ВКЛАДКА: ГАРАЖ -->
+      <!-- Вкладка: Гараж -->
       <section id="tab-garage" class="tab-content hidden">
-        <h2>Автосалон & Гараж</h2>
-        <p class="sub-text">Покупай авто и нанимай водителей!</p>
+        <h2>Автосалон</h2>
+        <p class="sub-text">Твой текущий авто: <span id="current-car-name" style="color:#f59e0b;"></span></p>
         <div id="garage-list"></div>
       </section>
 
-      <!-- ВКЛАДКА: ТЮНИНГ -->
+      <!-- Вкладка: Тюнинг -->
       <section id="tab-tuning" class="tab-content hidden">
-        <h2>Мастерская Кибер-Тюнинга</h2>
-        <p class="sub-text">Улучшай характеристики авто!</p>
+        <h2>Мастерская</h2>
         <div id="tuning-list"></div>
       </section>
 
-      <!-- ВКЛАДКА: ТОП -->
+      <!-- Вкладка: Топ -->
       <section id="tab-leaders" class="tab-content hidden">
         <h2>Зал Славы</h2>
         <div id="leaderboard-list"></div>
       </section>
 
-      <!-- ВКЛАДКА: ПРОФИЛЬ -->
+      <!-- Вкладка: Профиль -->
       <section id="tab-profile" class="tab-content hidden">
         <div class="card profile-header-card glass-glow">
-          <img id="profile-avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=Taxi" alt="Аватар">
+          <img id="profile-avatar" src="" alt="Аватар">
           <h2 id="profile-name">Водитель</h2>
           <div class="profile-stats">
             <div>Рейтинг: <span id="profile-rating-val">⭐ 4.80</span></div>
             <div>Заказов: <span id="profile-trips">0</span></div>
-            <div>Опыт: <span id="profile-exp">0</span> EXP</div>
+            <div>Опыт: <span id="profile-exp">0</span></div>
           </div>
         </div>
         <div class="card glass-card">
-          <h3>Позывной водителя</h3>
-          <input type="text" id="input-nickname" placeholder="Введите новый ник">
-          <button class="btn-neon-sm" onclick="saveNickname()">Сохранить</button>
-        </div>
-        <div class="card glass-card">
-          <h3>Промокод</h3>
-          <input type="text" id="input-promo" placeholder="START2026">
-          <button class="btn-neon-sm" onclick="applyPromo()">Активировать</button>
+          <h3>Позывной (Никнейм)</h3>
+          <div style="display:flex; gap:10px;">
+            <input type="text" id="input-nickname" placeholder="Введи ник">
+            <button class="btn-neon-sm" style="width:40%;" onclick="saveNickname()">Сменить</button>
+          </div>
         </div>
       </section>
-
     </main>
 
-    <!-- НАВИГАЦИЯ -->
     <nav class="nav-bar glass-glow">
       <button onclick="switchTab('orders')" class="nav-btn active">🚖 Заказы</button>
-      <button onclick="switchTab('contracts')" class="nav-btn">📜 Миссии</button>
       <button onclick="switchTab('garage')" class="nav-btn">🏎️ Гараж</button>
       <button onclick="switchTab('tuning')" class="nav-btn">🛠️ Тюнинг</button>
       <button onclick="switchTab('leaders')" class="nav-btn">🏆 Топ</button>
       <button onclick="switchTab('profile')" class="nav-btn">👤 Профиль</button>
     </nav>
-
   </div>
-
   <script src="app.js"></script>
 </body>
 </html>
