@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>TAXI TYCOON</title>
+  <title>TAXI TYCOON: ULTIMATE CYBER</title>
   
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -11,29 +11,59 @@
 </head>
 <body>
 
-  <!-- SPLASH SCREEN -->
-  <div id="splash-screen" class="screen">
-    <div class="splash-content">
-      <div class="logo-box">🚖</div>
-      <h1>TAXI TYCOON</h1>
-      <p class="subtitle">PRO CITY SIMULATOR</p>
+  <!-- Анимированный задний фон с частицами -->
+  <canvas id="cyber-bg"></canvas>
 
-      <div id="loader-block">
-        <div class="progress-bar">
-          <div id="progress-fill"></div>
-        </div>
-        <div id="progress-text">Загрузка... 0%</div>
+  <!-- HIGH-TECH CYBER SPLASH SCREEN -->
+  <div id="splash-screen" class="screen">
+    <!-- Фоновый HUD сканер -->
+    <div class="cyber-scanner-grid">
+      <div class="scanner-ring ring-1"></div>
+      <div class="scanner-ring ring-2"></div>
+      <div class="scanner-line"></div>
+    </div>
+
+    <div class="splash-content">
+      <!-- Логотип с эффектом неонового свечения и глитча -->
+      <div class="cyber-logo-wrapper">
+        <div class="logo-box glitch-effect" data-text="🚖">🚖</div>
+        <div class="logo-glow"></div>
       </div>
 
+      <h1 class="neon-title">TAXI TYCOON</h1>
+      <p class="subtitle">ULTIMATE CYBEREDITION v2.6</p>
+
+      <!-- Консоль загрузки и индикаторы -->
+      <div id="loader-block" class="glass-glow loader-card">
+        <div class="loader-status-row">
+          <span class="status-dot"></span>
+          <span id="progress-text">INITIALIZING SYSTEM...</span>
+          <span id="progress-percent" class="percent-val">0%</span>
+        </div>
+
+        <div class="progress-bar-container">
+          <div class="progress-bar">
+            <div id="progress-fill"></div>
+          </div>
+          <div class="bar-glow"></div>
+        </div>
+
+        <!-- Живой терминал загрузки систем -->
+        <div class="terminal-box">
+          <div id="terminal-log">> Booting Cyber-Core...</div>
+        </div>
+      </div>
+
+      <!-- Кнопка входа -->
       <div id="start-block" class="hidden">
-        <div class="user-card">
+        <div class="user-card glass-glow">
           <img id="user-avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=Taxi" alt="Avatar">
           <div class="user-info">
             <div id="user-name">Таксист</div>
             <div class="user-sub"><span id="user-rating">⭐ 4.80</span> • Уровень <span id="user-level">1</span></div>
           </div>
         </div>
-        <button id="btn-start" onclick="startGame()">НАЧАТЬ СМЕНУ</button>
+        <button id="btn-start" class="btn-neon pulse-btn" onclick="startGame()">ПОДКЛЮЧИТЬСЯ К СЕТИ</button>
       </div>
     </div>
   </div>
@@ -41,69 +71,109 @@
   <!-- MAIN GAME -->
   <div id="main-game" class="screen hidden">
     
-    <header class="header">
+    <!-- ВЕРХНЯЯ ПАНЕЛЬ -->
+    <header class="header glass-glow">
       <div>
         <div class="label">Баланс</div>
         <div id="balance" class="val-gold">$0</div>
       </div>
+      <div class="weather-box">
+        <div id="weather-icon">☀️</div>
+        <div>
+          <div id="weather-name" class="weather-title">Ясно</div>
+          <div id="weather-mult" class="weather-sub">Множитель: x1.0</div>
+        </div>
+      </div>
       <div class="text-right">
-        <div class="label">Уровень: <span id="header-level" class="val-yellow">1</span></div>
-        <div id="rating" class="val-yellow">⭐ 4.80</div>
+        <button id="audio-toggle" class="btn-audio" onclick="toggleAudio()">🔊</button>
+        <div class="label">Ур: <span id="header-level" class="val-yellow">1</span></div>
       </div>
     </header>
 
-    <!-- Полоса опыта -->
     <div class="exp-container">
       <div id="exp-bar" style="width: 0%;"></div>
     </div>
 
     <main class="content">
       
-      <!-- УВЕДОМИТЕЛЬНОЕ ОКНО СОБЫТИЙ -->
       <div id="event-toast" class="toast hidden"></div>
+
+      <!-- ВСПЛЫВАЮЩИЙ ИНТЕРАКТИВ ПОЛИЦИИ -->
+      <div id="police-modal" class="modal hidden">
+        <div class="modal-content glass-glow red-border">
+          <div class="police-siren">🚨 POLICE INTERCEPT 🚨</div>
+          <h3>Вас пытается остановить Кибер-ДПС!</h3>
+          <p id="police-msg" style="font-size: 12px; color: #9ca3af; margin: 10px 0 15px;">Вас засекли за превышение скорости!</p>
+          <div class="modal-actions">
+            <button class="btn-neon-red" onclick="resolvePolice('bribe')">Дать взятку ($1,500)</button>
+            <button class="btn-neon" onclick="resolvePolice('escape')">Попытаться уйти (Шанс 50%)</button>
+          </div>
+        </div>
+      </div>
 
       <!-- ВКЛАДКА: ЗАКАЗЫ -->
       <section id="tab-orders" class="tab-content">
         <div class="car-status-grid">
-          <div class="status-card">
-            <div class="status-title">⛽ Бензин: <span id="fuel-val">100%</span></div>
+          <div class="status-card glass-card">
+            <div class="status-title">⛽ Топливо: <span id="fuel-val">100%</span></div>
             <div class="bar"><div id="fuel-bar" style="width: 100%;"></div></div>
             <button class="btn-sm" onclick="refuel()">Заправить ($300)</button>
           </div>
-          <div class="status-card">
-            <div class="status-title">🔧 Состояние: <span id="cond-val">100%</span></div>
-            <div class="bar"><div id="cond-bar" style="width: 100%;"></div></div>
-            <button class="btn-sm" onclick="repair()">Починить ($500)</button>
+          <div class="status-card glass-card">
+            <div class="status-title">🔧 Двигатель: <span id="engine-val">100%</span></div>
+            <div class="bar"><div id="engine-bar" style="width: 100%;"></div></div>
+            <button class="btn-sm" onclick="repairEngine()">Ремонт ($500)</button>
+          </div>
+          <div class="status-card glass-card">
+            <div class="status-title">🛞 Покрышки: <span id="tires-val">100%</span></div>
+            <div class="bar"><div id="tires-bar" style="width: 100%;"></div></div>
+            <button class="btn-sm" onclick="replaceTires()">Замена ($400)</button>
+          </div>
+          <div class="status-card glass-card">
+            <div class="status-title">⚡ Тюнинг</div>
+            <div id="tuning-status-badges" class="tuning-badges">Нет апгрейдов</div>
           </div>
         </div>
 
-        <div class="order-card">
+        <div class="order-card glass-glow">
           <div id="order-class" class="badge">ЭКОНОМ КЛАСС</div>
-          <h2 id="order-car-title">ВАЗ-2107</h2>
+          <h2 id="order-car-title" class="car-title-glow">ВАЗ-2107</h2>
           <div id="order-reward" class="reward-val">+$400</div>
-          
-          <div id="trip-event-log" class="event-log-text">Готов к выезду</div>
-          
-          <button id="btn-drive" onclick="takeOrder()">ВЗЯТЬ ЗАКАЗ</button>
+          <div id="trip-event-log" class="event-log-text">Диспетчер: Ожидание заказа...</div>
+          <button id="btn-drive" class="btn-neon" onclick="takeOrder()">ПРИНЯТЬ ВЫЗОВ</button>
         </div>
       </section>
 
-      <!-- ВКЛАДКА: ГАРАЖ И АВТОПАРК -->
+      <!-- ВКЛАДКА: КОНТРАКТЫ -->
+      <section id="tab-contracts" class="tab-content hidden">
+        <h2>VIP Срочные Контракты</h2>
+        <p class="sub-text">Выполняй особые миссии с повышенной наградой!</p>
+        <div id="contracts-list"></div>
+      </section>
+
+      <!-- ВКЛАДКА: ГАРАЖ -->
       <section id="tab-garage" class="tab-content hidden">
-        <h2>Гараж и Наёмники</h2>
-        <p class="sub-text">Покупай авто и нанимай водителей для пассивного дохода!</p>
+        <h2>Автосалон & Гараж</h2>
+        <p class="sub-text">Покупай авто и нанимай водителей!</p>
         <div id="garage-list"></div>
       </section>
 
-      <!-- ВКЛАДКА: ТОП ЛИДЕРОВ -->
+      <!-- ВКЛАДКА: ТЮНИНГ -->
+      <section id="tab-tuning" class="tab-content hidden">
+        <h2>Мастерская Кибер-Тюнинга</h2>
+        <p class="sub-text">Улучшай характеристики авто!</p>
+        <div id="tuning-list"></div>
+      </section>
+
+      <!-- ВКЛАДКА: ТОП -->
       <section id="tab-leaders" class="tab-content hidden">
-        <h2>Топ Магнатов Такси</h2>
+        <h2>Зал Славы</h2>
         <div id="leaderboard-list"></div>
       </section>
 
       <!-- ВКЛАДКА: ПРОФИЛЬ -->
       <section id="tab-profile" class="tab-content hidden">
-        <div class="card profile-header-card">
+        <div class="card profile-header-card glass-glow">
           <img id="profile-avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=Taxi" alt="Аватар">
           <h2 id="profile-name">Водитель</h2>
           <div class="profile-stats">
@@ -112,24 +182,26 @@
             <div>Опыт: <span id="profile-exp">0</span> EXP</div>
           </div>
         </div>
-
-        <div class="card">
+        <div class="card glass-card">
           <h3>Позывной водителя</h3>
           <input type="text" id="input-nickname" placeholder="Введите новый ник">
-          <button onclick="saveNickname()">Сохранить</button>
+          <button class="btn-neon-sm" onclick="saveNickname()">Сохранить</button>
         </div>
-        <div class="card">
+        <div class="card glass-card">
           <h3>Промокод</h3>
           <input type="text" id="input-promo" placeholder="START2026">
-          <button onclick="applyPromo()">Активировать</button>
+          <button class="btn-neon-sm" onclick="applyPromo()">Активировать</button>
         </div>
       </section>
 
     </main>
 
-    <nav class="nav-bar">
+    <!-- НАВИГАЦИЯ -->
+    <nav class="nav-bar glass-glow">
       <button onclick="switchTab('orders')" class="nav-btn active">🚖 Заказы</button>
+      <button onclick="switchTab('contracts')" class="nav-btn">📜 Миссии</button>
       <button onclick="switchTab('garage')" class="nav-btn">🏎️ Гараж</button>
+      <button onclick="switchTab('tuning')" class="nav-btn">🛠️ Тюнинг</button>
       <button onclick="switchTab('leaders')" class="nav-btn">🏆 Топ</button>
       <button onclick="switchTab('profile')" class="nav-btn">👤 Профиль</button>
     </nav>
