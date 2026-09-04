@@ -5,23 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>TAXI TYCOON</title>
   
-  <!-- Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <!-- Supabase JS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Иконки Lucide -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-  
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- 1. ДЕМО-ЭКРАН ЗАГРУЗКИ (SPLASH SCREEN) -->
+  <!-- SPLASH SCREEN -->
   <div id="splash-screen" class="screen">
     <div class="splash-content">
       <div class="logo-box">🚖</div>
       <h1>TAXI TYCOON</h1>
-      <p class="subtitle">Telegram City Simulator</p>
+      <p class="subtitle">PRO CITY SIMULATOR</p>
 
       <div id="loader-block">
         <div class="progress-bar">
@@ -35,7 +30,7 @@
           <img id="user-avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=Taxi" alt="Avatar">
           <div class="user-info">
             <div id="user-name">Таксист</div>
-            <div class="user-sub"><span id="user-rating">⭐ 4.80</span> • <span id="user-car-name">ВАЗ-2107</span></div>
+            <div class="user-sub"><span id="user-rating">⭐ 4.80</span> • Уровень <span id="user-level">1</span></div>
           </div>
         </div>
         <button id="btn-start" onclick="startGame()">НАЧАТЬ СМЕНУ</button>
@@ -43,24 +38,30 @@
     </div>
   </div>
 
-  <!-- 2. ГЛАВНЫЙ ИНТЕРФЕЙС ИГРЫ -->
+  <!-- MAIN GAME -->
   <div id="main-game" class="screen hidden">
     
-    <!-- Шапка -->
     <header class="header">
       <div>
         <div class="label">Баланс</div>
         <div id="balance" class="val-gold">$0</div>
       </div>
       <div class="text-right">
-        <div class="label">Рейтинг</div>
+        <div class="label">Уровень: <span id="header-level" class="val-yellow">1</span></div>
         <div id="rating" class="val-yellow">⭐ 4.80</div>
       </div>
     </header>
 
-    <!-- Основной контент -->
+    <!-- Полоса опыта -->
+    <div class="exp-container">
+      <div id="exp-bar" style="width: 0%;"></div>
+    </div>
+
     <main class="content">
       
+      <!-- УВЕДОМИТЕЛЬНОЕ ОКНО СОБЫТИЙ -->
+      <div id="event-toast" class="toast hidden"></div>
+
       <!-- ВКЛАДКА: ЗАКАЗЫ -->
       <section id="tab-orders" class="tab-content">
         <div class="car-status-grid">
@@ -80,13 +81,17 @@
           <div id="order-class" class="badge">ЭКОНОМ КЛАСС</div>
           <h2 id="order-car-title">ВАЗ-2107</h2>
           <div id="order-reward" class="reward-val">+$400</div>
+          
+          <div id="trip-event-log" class="event-log-text">Готов к выезду</div>
+          
           <button id="btn-drive" onclick="takeOrder()">ВЗЯТЬ ЗАКАЗ</button>
         </div>
       </section>
 
-      <!-- ВКЛАДКА: ГАРАЖ -->
+      <!-- ВКЛАДКА: ГАРАЖ И АВТОПАРК -->
       <section id="tab-garage" class="tab-content hidden">
-        <h2>Гараж авто</h2>
+        <h2>Гараж и Наёмники</h2>
+        <p class="sub-text">Покупай авто и нанимай водителей для пассивного дохода!</p>
         <div id="garage-list"></div>
       </section>
 
@@ -98,9 +103,19 @@
 
       <!-- ВКЛАДКА: ПРОФИЛЬ -->
       <section id="tab-profile" class="tab-content hidden">
+        <div class="card profile-header-card">
+          <img id="profile-avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=Taxi" alt="Аватар">
+          <h2 id="profile-name">Водитель</h2>
+          <div class="profile-stats">
+            <div>Рейтинг: <span id="profile-rating-val">⭐ 4.80</span></div>
+            <div>Заказов: <span id="profile-trips">0</span></div>
+            <div>Опыт: <span id="profile-exp">0</span> EXP</div>
+          </div>
+        </div>
+
         <div class="card">
           <h3>Позывной водителя</h3>
-          <input type="text" id="input-nickname" placeholder="Ваш ник">
+          <input type="text" id="input-nickname" placeholder="Введите новый ник">
           <button onclick="saveNickname()">Сохранить</button>
         </div>
         <div class="card">
@@ -112,7 +127,6 @@
 
     </main>
 
-    <!-- Нижняя навигация -->
     <nav class="nav-bar">
       <button onclick="switchTab('orders')" class="nav-btn active">🚖 Заказы</button>
       <button onclick="switchTab('garage')" class="nav-btn">🏎️ Гараж</button>
