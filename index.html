@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>TAXI TYCOON</title>
+  
+  <!-- Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <!-- Supabase JS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Иконки Lucide -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- 1. ДЕМО-ЭКРАН ЗАГРУЗКИ (SPLASH SCREEN) -->
+  <div id="splash-screen" class="screen">
+    <div class="splash-content">
+      <div class="logo-box">🚖</div>
+      <h1>TAXI TYCOON</h1>
+      <p class="subtitle">Telegram City Simulator</p>
+
+      <div id="loader-block">
+        <div class="progress-bar">
+          <div id="progress-fill"></div>
+        </div>
+        <div id="progress-text">Загрузка... 0%</div>
+      </div>
+
+      <div id="start-block" class="hidden">
+        <div class="user-card">
+          <img id="user-avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=Taxi" alt="Avatar">
+          <div class="user-info">
+            <div id="user-name">Таксист</div>
+            <div class="user-sub"><span id="user-rating">⭐ 4.80</span> • <span id="user-car-name">ВАЗ-2107</span></div>
+          </div>
+        </div>
+        <button id="btn-start" onclick="startGame()">НАЧАТЬ СМЕНУ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. ГЛАВНЫЙ ИНТЕРФЕЙС ИГРЫ -->
+  <div id="main-game" class="screen hidden">
+    
+    <!-- Шапка -->
+    <header class="header">
+      <div>
+        <div class="label">Баланс</div>
+        <div id="balance" class="val-gold">$0</div>
+      </div>
+      <div class="text-right">
+        <div class="label">Рейтинг</div>
+        <div id="rating" class="val-yellow">⭐ 4.80</div>
+      </div>
+    </header>
+
+    <!-- Основной контент -->
+    <main class="content">
+      
+      <!-- ВКЛАДКА: ЗАКАЗЫ -->
+      <section id="tab-orders" class="tab-content">
+        <div class="car-status-grid">
+          <div class="status-card">
+            <div class="status-title">⛽ Бензин: <span id="fuel-val">100%</span></div>
+            <div class="bar"><div id="fuel-bar" style="width: 100%;"></div></div>
+            <button class="btn-sm" onclick="refuel()">Заправить ($300)</button>
+          </div>
+          <div class="status-card">
+            <div class="status-title">🔧 Состояние: <span id="cond-val">100%</span></div>
+            <div class="bar"><div id="cond-bar" style="width: 100%;"></div></div>
+            <button class="btn-sm" onclick="repair()">Починить ($500)</button>
+          </div>
+        </div>
+
+        <div class="order-card">
+          <div id="order-class" class="badge">ЭКОНОМ КЛАСС</div>
+          <h2 id="order-car-title">ВАЗ-2107</h2>
+          <div id="order-reward" class="reward-val">+$400</div>
+          <button id="btn-drive" onclick="takeOrder()">ВЗЯТЬ ЗАКАЗ</button>
+        </div>
+      </section>
+
+      <!-- ВКЛАДКА: ГАРАЖ -->
+      <section id="tab-garage" class="tab-content hidden">
+        <h2>Гараж авто</h2>
+        <div id="garage-list"></div>
+      </section>
+
+      <!-- ВКЛАДКА: ТОП ЛИДЕРОВ -->
+      <section id="tab-leaders" class="tab-content hidden">
+        <h2>Топ Магнатов Такси</h2>
+        <div id="leaderboard-list"></div>
+      </section>
+
+      <!-- ВКЛАДКА: ПРОФИЛЬ -->
+      <section id="tab-profile" class="tab-content hidden">
+        <div class="card">
+          <h3>Позывной водителя</h3>
+          <input type="text" id="input-nickname" placeholder="Ваш ник">
+          <button onclick="saveNickname()">Сохранить</button>
+        </div>
+        <div class="card">
+          <h3>Промокод</h3>
+          <input type="text" id="input-promo" placeholder="START2026">
+          <button onclick="applyPromo()">Активировать</button>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Нижняя навигация -->
+    <nav class="nav-bar">
+      <button onclick="switchTab('orders')" class="nav-btn active">🚖 Заказы</button>
+      <button onclick="switchTab('garage')" class="nav-btn">🏎️ Гараж</button>
+      <button onclick="switchTab('leaders')" class="nav-btn">🏆 Топ</button>
+      <button onclick="switchTab('profile')" class="nav-btn">👤 Профиль</button>
+    </nav>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
