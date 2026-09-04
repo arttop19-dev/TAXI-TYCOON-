@@ -144,7 +144,6 @@ function loadFromLocalStorage() {
 async function syncWithDatabase() {
   if (!db || !currentUser.telegram_id) return;
   try {
-    // Пытаемся прочитать профиль (если RLS позволяет чтение своей записи)
     const { data, error } = await db.from('profiles').select('*').eq('telegram_id', currentUser.telegram_id).single();
     if (data) currentUser = { ...currentUser, ...data };
     localStorage.setItem('cyber_taxi_data', JSON.stringify(currentUser));
@@ -175,7 +174,6 @@ async function saveState() {
     console.warn("Ошибка сохранения в БД:", e);
   }
 }
-
 
 // ==========================================
 // ВИЗУАЛЬНЫЕ ЭФФЕКТЫ И АНИМАЦИИ
@@ -255,6 +253,7 @@ function startGame() {
   renderGarage();
   renderTuning();
   loadLeaderboard();
+  loadGlobalStats();
   updateUI();
 }
 
@@ -262,7 +261,6 @@ function startGame() {
 // ИГРОВЫЕ ЦИКЛЫ
 // ==========================================
 function startGameLoops() {
-  // Смена погоды
   setInterval(() => {
     currentWeather = WEATHERS[Math.floor(Math.random() * WEATHERS.length)];
     const wIcon = document.getElementById('weather-icon');
@@ -274,9 +272,8 @@ function startGameLoops() {
     if(wMult) wMult.innerText = `Тариф: x${currentWeather.mult}`;
     
     if (!isDriving) generateOrders();
-  }, 90000); // Каждые 1.5 минуты
+  }, 90000);
 
-  // Пассивный доход от нанятых водителей
   setInterval(() => {
     let passiveIncome = 0;
     currentUser.auto_drivers.forEach(id => {
@@ -289,7 +286,7 @@ function startGameLoops() {
       updateUI();
       saveState();
     }
-  }, 10000); // Каждые 10 секунд
+  }, 10000);
   
   autoSaveInterval = setInterval(saveState, 15000);
 }
@@ -366,28 +363,24 @@ function takeOrder(orderId) {
     fill.style.width = Math.min(progress, 100) + '%';
     speedTxt.innerText = `${Math.floor(60 * speedMult + Math.random()*15)} км/ч`;
 
-    // Генерация случайного события на середине пути
     if (progress > 35 && progress < 65 && !hasEvent) {
       hasEvent = true;
       const riskChance = Math.max(0, currentWeather.risk - (currentCar.riskResist / 100));
       
       const rand = Math.random();
       if (rand < riskChance) {
-         // Негативное событие (ДТП / Поломка)
          audio.play('crash');
          log.innerText = "⚠️ Пробито колесо! Скорость снижена, машина повреждена.";
          log.style.color = "#ef4444";
          speedMult *= 0.6;
          engineCond -= Math.floor(Math.random() * 15 + 10);
       } else if (rand > 0.7 && rand < 0.85 && !currentUser.upgrades.includes('radar')) {
-         // Полиция
          audio.play('police');
          log.innerText = "🚓 Камера ДПС! Штраф за превышение скорости.";
          log.style.color = "#f59e0b";
          const penalty = Math.floor(order.reward * 0.2);
          order.reward -= penalty;
       } else if (rand >= 0.85) {
-         // Позитивное событие
          audio.play('coin');
          log.innerText = "💬 Клиенту нравится стиль вождения. Настроение +";
          log.style.color = "#10b981";
@@ -589,7 +582,6 @@ async function loadLeaderboard() {
   try {
     if (!db) throw new Error("Нет подключения к Supabase");
     
-    // Используем защищенную процедуру, обходящую блокировку RLS
     const { data, error } = await db.rpc('get_top_earners');
       
     if (error) throw error;
@@ -612,6 +604,31 @@ async function loadLeaderboard() {
   } catch (err) {
     console.warn("Ошибка загрузки рейтинга:", err);
     container.innerHTML = `<div style="text-align:center; color:#ef4444; font-size:12px; margin-top:20px;">Данные рейтинга недоступны. Проверьте БД.</div>`;
+  }
+}
+
+// ==========================================
+// ГЛОБАЛЬНАЯ СТАТИСТИКА
+// ==========================================
+async function loadGlobalStats() {
+  const elPlayers = document.getElementById('stat-players');
+  const elEarned = document.getElementById('stat-earned');
+  const elTrips = document.getElementById('stat-trips');
+  
+  if (!elPlayers || !db) return;
+  
+  try {
+    const { data, error } = await db.rpc('get_global_stats');
+    if (error) throw error;
+    
+    if (data && data.length > 0) {
+      const stats = data[0];
+      elPlayers.textContent = Number(stats.total_players || 0).toLocaleString();
+      elEarned.textContent = `$${Number(stats.total_earned || 0).toLocaleString()}`;
+      elTrips.textContent = Number(stats.total_trips || 0).toLocaleString();
+    }
+  } catch (err) {
+    console.warn("Ошибка загрузки глобальной статистики:", err);
   }
 }
 
@@ -644,39 +661,18 @@ function switchTab(tab) {
   
   document.getElementById('tab-' + tab).classList.remove('hidden');
   
-  // Поиск активной кнопки и добавление класса
   const btns = document.querySelectorAll('.nav-btn');
   for (let btn of btns) {
-    if (btn.getAttribute('onclick').includes(tab)) {
+    if (btn.getAttribute('onclick')?.includes(tab)) {
       btn.classList.add('active');
       break;
     }
   }
-async function loadGlobalStats() {
-  const elPlayers = document.getElementById('stat-players');
-  const elEarned = document.getElementById('stat-earned');
-  const elTrips = document.getElementById('stat-trips');
-  
-  if (!elPlayers || !db) return;
-  
-  try {
-    const { data, error } = await db.rpc('get_global_stats');
-    if (error) throw error;
-    
-    if (data && data.length > 0) {
-      const stats = data[0];
-      elPlayers.textContent = Number(stats.total_players || 0).toLocaleString();
-      elEarned.textContent = `$${Number(stats.total_earned || 0).toLocaleString()}`;
-      elTrips.textContent = Number(stats.total_trips || 0).toLocaleString();
-    }
-  } catch (err) {
-    console.warn("Ошибка загрузки глобальной статистики:", err);
-  }
-}
 
   if (tab === 'garage') renderGarage();
   if (tab === 'tuning') renderTuning();
   if (tab === 'leaders') loadLeaderboard();
+  if (tab === 'profile') loadGlobalStats();
 }
 
 function updateUI() {
