@@ -594,7 +594,6 @@ async function loadLeaderboard() {
   try {
     if (!db) throw new Error("Нет подключения к Supabase");
     
-    // Используем защищенную процедуру, обходящую блокировку RLS
     const { data, error } = await db.rpc('get_top_earners');
       
     if (error) throw error;
@@ -606,19 +605,24 @@ async function loadLeaderboard() {
             <b style="font-size: 16px; color: ${i === 0 ? '#f59e0b' : i === 1 ? '#9ca3af' : i === 2 ? '#d97706' : '#3b82f6'};">#${i + 1}</b> 
             <span style="font-weight: 500;">${item.custom_nickname || item.first_name || 'Неизвестный'}</span>
           </div>
-          <div style="color:#10b981; font-weight:bold; font-size: 15px;">$${Number(item.balance).toLocaleString()}</div>
+          <div style="color:#10b981; font-weight:bold; font-size: 15px;">$${Number(item.balance || 0).toLocaleString()}</div>
         </div>
       `).join('');
-      return;
     } else {
       container.innerHTML = `<div style="text-align:center; color:#9ca3af; font-size:12px; margin-top:20px;">Рейтинг пока пуст</div>`;
-      return;
     }
   } catch (err) {
-    console.warn("Ошибка загрузки рейтинга:", err);
-    container.innerHTML = `<div style="text-align:center; color:#ef4444; font-size:12px; margin-top:20px;">Данные рейтинга недоступны. Проверьте БД.</div>`;
+    console.error("Полная ошибка RPC:", err);
+    // Выводим детальный JSON ошибки прямо на экран телефона в интерфейс игры
+    container.innerHTML = `
+      <div style="padding: 15px; color: #ef4444; font-size: 11px; word-break: break-all; text-align: left; background: rgba(239, 68, 68, 0.1); border-radius: 8px; margin: 10px;">
+        <b>DEBUG ERROR:</b><br>
+        ${JSON.stringify(err, null, 2)}
+      </div>
+    `;
   }
 }
+
 
 // ==========================================
 // ПРОФИЛЬ И ИНТЕРФЕЙС
