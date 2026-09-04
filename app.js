@@ -652,6 +652,27 @@ function switchTab(tab) {
       break;
     }
   }
+async function loadGlobalStats() {
+  const elPlayers = document.getElementById('stat-players');
+  const elEarned = document.getElementById('stat-earned');
+  const elTrips = document.getElementById('stat-trips');
+  
+  if (!elPlayers || !db) return;
+  
+  try {
+    const { data, error } = await db.rpc('get_global_stats');
+    if (error) throw error;
+    
+    if (data && data.length > 0) {
+      const stats = data[0];
+      elPlayers.textContent = Number(stats.total_players || 0).toLocaleString();
+      elEarned.textContent = `$${Number(stats.total_earned || 0).toLocaleString()}`;
+      elTrips.textContent = Number(stats.total_trips || 0).toLocaleString();
+    }
+  } catch (err) {
+    console.warn("Ошибка загрузки глобальной статистики:", err);
+  }
+}
 
   if (tab === 'garage') renderGarage();
   if (tab === 'tuning') renderTuning();
