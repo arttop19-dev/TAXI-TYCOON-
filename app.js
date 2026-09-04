@@ -158,29 +158,24 @@ async function saveState() {
   if (!db || !currentUser.telegram_id) return;
   
   try {
-    // Сохранение напрямую. Если настроен Edge Function для записи, 
-    // этот запрос тихо завершится с ошибкой из-за RLS, но локальный прогресс сохранится.
-    const { error } = await db.from('profiles').upsert({
-      telegram_id: currentUser.telegram_id,
-      first_name: currentUser.first_name,
-      avatar_url: currentUser.avatar_url,
-      balance: currentUser.balance,
-      level: currentUser.level,
-      exp: currentUser.exp,
-      rating: currentUser.rating,
-      total_trips: currentUser.total_trips,
-      custom_nickname: currentUser.custom_nickname,
-      owned_cars: currentUser.owned_cars,
-      auto_drivers: currentUser.auto_drivers,
-      upgrades: currentUser.upgrades,
-      updated_at: new Date().toISOString()
-    }, { onConflict: 'telegram_id' });
+    const { error } = await db.rpc('upsert_my_profile', {
+      p_telegram_id: currentUser.telegram_id,
+      p_first_name: currentUser.first_name,
+      p_avatar_url: currentUser.avatar_url,
+      p_balance: currentUser.balance,
+      p_level: currentUser.level,
+      p_exp: currentUser.exp,
+      p_rating: currentUser.rating,
+      p_total_trips: currentUser.total_trips,
+      p_custom_nickname: currentUser.custom_nickname || ''
+    });
     
     if (error) throw error;
   } catch (e) {
-    // Игнорируем ошибки записи, чтобы не спамить в консоль, если работает Edge Function
+    console.warn("Ошибка сохранения в БД:", e);
   }
 }
+
 
 // ==========================================
 // ВИЗУАЛЬНЫЕ ЭФФЕКТЫ И АНИМАЦИИ
