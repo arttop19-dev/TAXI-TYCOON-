@@ -5,6 +5,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 let db = null;
 
 // Расширенный автопарк
+
 const CARS = [
   { id: 'vaz2107', name: 'ВАЗ-2107', price: 0, reqLevel: 1, income: 400, time: 5, passiveIncome: 10 },
   { id: 'vaz2115', name: 'ВАЗ-2115', price: 6000, reqLevel: 2, income: 750, time: 6, passiveIncome: 30 },
@@ -14,7 +15,9 @@ const CARS = [
   { id: 'maybach', name: 'Maybach', price: 300000, reqLevel: 7, income: 15000, time: 14, passiveIncome: 1200 }
 ];
 
+// Дефолтный профиль
 let currentUser = {
+  telegram_id: null,
   balance: 1500,
   level: 1,
   exp: 0,
@@ -31,6 +34,9 @@ let condition = 100;
 let isDriving = false;
 
 window.onload = async () => {
+  // 1. Сначала подтягиваем локальное сохранение (чтобы мгновенно отобразить прогресс)
+  loadFromLocalStorage();
+
   try {
     if (window.supabase && SUPABASE_URL !== 'ТВОЙ_SUPABASE_URL') {
       db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -38,7 +44,7 @@ window.onload = async () => {
     simulateLoading();
     await initUser();
   } catch (err) {
-    console.warn("Запуск в автономном режиме без БД");
+    console.warn("Работа в автономном режиме без БД", err);
     simulateLoading();
   }
   startPassiveIncomeLoop();
@@ -50,7 +56,7 @@ function simulateLoading() {
   const txt = document.getElementById('progress-text');
   
   const timer = setInterval(() => {
-    p += 20;
+    p += 25;
     if (fill) fill.style.width = p + '%';
     if (txt) txt.innerText = `Загрузка... ${p}%`;
     if (p >= 100) {
@@ -61,30 +67,84 @@ function simulateLoading() {
   }, 80);
 }
 
-async function initUser() {
-  if (!db) return;
-  const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user || { id: 999, first_name: 'Водитель' };
+// Загрузка локальной копии
+function loadFromLocalStorage() {
+  const saved = localStorage.getItem('taxi_tycoon_user');
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      currentUser = { ...currentUser, ...parsed };
+      updateUI();
+    } catch(e) {
+      console.error("Ошибка при чтении LocalStorage", e);
+    }
+  }
+}
 
-  let { data: profile } = await db.from('profiles').select('*').eq('telegram_id', tgUser.id).single();
-  
-  if (!profile) {
+// Синхронизация с Supabase
+async function initUser() {
+  const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user || { id: 80399910, first_name: 'Водитель' };
+  currentUser.telegram_id = tgUser.id;
+
+  if (!db) {
+    updateUI();
+    return;
+  }
+
+  // Запрашиваем профиль из Supabase по telegram_id
+  let { data: profile, error } = await db.from('profiles').select('*').eq('telegram_id', tgUser.id).single();
+
+  if (error || !profile) {
+    // Если игрока нет — создаем запись
     const { data: newProfile } = await db.from('profiles').insert({
       telegram_id: tgUser.id,
       first_name: tgUser.first_name,
       avatar_url: tgUser.photo_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${tgUser.id}`,
-      balance: 1500,
-      level: 1,
-      exp: 0,
-      rating: 4.80,
-      total_trips: 0,
-      owned_cars: ['vaz2107'],
-      auto_drivers: []
+      balance: currentUser.balance,
+      level: currentUser.level,
+      exp: currentUser.exp,
+      rating: currentUser.rating,
+      total_trips: currentUser.total_trips,
+      custom_nickname: currentUser.custom_nickname,
+      owned_cars: currentUser.owned_cars,
+      auto_drivers: currentUser.auto_drivers
     }).select().single();
-    profile = newProfile;
+
+    if (newProfile) currentUser = newProfile;
+  } else {
+    // Если игрок найден — загружаем его прогресс из БД
+    currentUser = {
+      ...currentUser,
+      ...profile,
+      owned_cars: profile.owned_cars || ['vaz2107'],
+      auto_drivers: profile.auto_drivers || []
+    };
   }
-  
-  if (profile) currentUser = profile;
+
+  saveState();
   updateUI();
+}
+
+function saveState() {
+  // 1. Сохраняем локально
+  localStorage.setItem('taxi_tycoon_user', JSON.stringify(currentUser));
+
+  // 2. Отправляем в Supabase
+  if (db && currentUser.telegram_id) {
+    db.from('profiles').upsert({
+      telegram_id: currentUser.telegram_id,
+      balance: currentUser.balance,
+      level: currentUser.level,
+      exp: currentUser.exp,
+      rating: currentUser.rating,
+      total_trips: currentUser.total_trips,
+      custom_nickname: currentUser.custom_nickname,
+      owned_cars: currentUser.owned_cars,
+      auto_drivers: currentUser.auto_drivers
+    }, { onConflict: 'telegram_id' }).then(({ error }) => {
+      if (error) console.error("Ошибка сохранения в Supabase:", error);
+    });
+  }
 }
 
 function updateUI() {
@@ -118,7 +178,7 @@ function startGame() {
   loadLeaderboard();
 }
 
-// Система заказа + случайные события
+// Выполнение заказов
 async function takeOrder() {
   if (isDriving) return;
   if (fuel < 15 || condition < 10) {
@@ -139,25 +199,11 @@ async function takeOrder() {
     btn.innerText = `В ПУТИ... ${timeLeft} сек`;
     timeLeft--;
 
-    if (timeLeft === Math.floor(currentCar.time / 2)) {
-      log.innerText = getRandomMidTripEvent();
-    }
-
     if (timeLeft < 0) {
       clearInterval(tripInterval);
       finishOrder(btn, log);
     }
   }, 1000);
-}
-
-function getRandomMidTripEvent() {
-  const events = [
-    'Пассажир просит включить радио...',
-    'Объезжаем пробку по переулкам...',
-    'Клиент везет кота в перевозке...',
-    'Зеленая волна светофоров!'
-  ];
-  return events[Math.floor(Math.random() * events.length)];
 }
 
 function finishOrder(btn, log) {
@@ -172,35 +218,30 @@ function finishOrder(btn, log) {
 
   let earned = currentCar.income;
   let expGained = 25;
-  let eventText = '';
 
-  // Генератор случайных происшествий по завершении
   const chance = Math.random();
   if (chance > 0.8) {
     const bonus = Math.floor(earned * 0.3);
     earned += bonus;
-    eventText = ` 💰 Щедрые чаевые +$${bonus}!`;
+    log.innerText = ` 💰 Щедрые чаевые +$${bonus}!`;
   } else if (chance < 0.15) {
     currentUser.rating = Math.max(3.0, currentUser.rating - 0.05);
-    eventText = ' 😡 Пассажир был недоволен!';
+    log.innerText = ' 😡 Пассажир был недоволен!';
   } else {
-    eventText = ' ✅ Заказ выполнен успешно!';
+    log.innerText = ' ✅ Заказ выполнен успешно!';
   }
-
-  log.innerText = eventText;
 
   currentUser.balance += earned;
   currentUser.total_trips += 1;
   addEXP(expGained);
 
   updateUI();
+  saveState();
 
   btn.style.background = 'linear-gradient(to right, #f59e0b, #d97706)';
   btn.style.color = '#000';
   btn.innerText = 'ВЗЯТЬ ЗАКАЗ';
   isDriving = false;
-
-  saveToDB();
 }
 
 function addEXP(amount) {
@@ -213,7 +254,6 @@ function addEXP(amount) {
   }
 }
 
-// Заправка и ремонт
 function refuel() {
   if (currentUser.balance < 300) return triggerToast('❌ Недостаточно денег!');
   currentUser.balance -= 300;
@@ -221,7 +261,7 @@ function refuel() {
   document.getElementById('fuel-val').innerText = '100%';
   document.getElementById('fuel-bar').style.width = '100%';
   updateUI();
-  saveToDB();
+  saveState();
 }
 
 function repair() {
@@ -231,10 +271,9 @@ function repair() {
   document.getElementById('cond-val').innerText = '100%';
   document.getElementById('cond-bar').style.width = '100%';
   updateUI();
-  saveToDB();
+  saveState();
 }
 
-// Пассивный доход от автопарка
 function startPassiveIncomeLoop() {
   setInterval(() => {
     let totalPassive = 0;
@@ -246,11 +285,11 @@ function startPassiveIncomeLoop() {
     if (totalPassive > 0) {
       currentUser.balance += totalPassive;
       updateUI();
+      saveState();
     }
-  }, 10000); // Каждые 10 секунд
+  }, 10000);
 }
 
-// Рендер гаража
 function renderGarage() {
   const container = document.getElementById('garage-list');
   container.innerHTML = CARS.map(car => {
@@ -299,7 +338,7 @@ function buyCar(carId) {
   currentUser.owned_cars.push(carId);
   updateUI();
   renderGarage();
-  saveToDB();
+  saveState();
   triggerToast(`🎉 Куплен автомобиль ${car.name}!`);
 }
 
@@ -321,11 +360,10 @@ function hireDriver(carId) {
   currentUser.auto_drivers.push(carId);
   updateUI();
   renderGarage();
-  saveToDB();
+  saveState();
   triggerToast(`👨‍✈️ Водитель нанят на ${car.name}!`);
 }
 
-// Лидерборд
 async function loadLeaderboard() {
   const container = document.getElementById('leaderboard-list');
   if (db) {
@@ -356,7 +394,6 @@ async function loadLeaderboard() {
   `;
 }
 
-// Навигация
 function switchTab(tab) {
   if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.selectionChanged();
   document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
@@ -379,8 +416,8 @@ function saveNickname() {
   if (!nick) return;
   currentUser.custom_nickname = nick;
   updateUI();
+  saveState();
   triggerToast('✅ Ник сохранен!');
-  saveToDB();
 }
 
 function applyPromo() {
@@ -388,24 +425,9 @@ function applyPromo() {
   if (code === 'START2026') {
     currentUser.balance += 5000;
     updateUI();
+    saveState();
     triggerToast('🎉 Промокод активирован! +$5000');
-    saveToDB();
   } else {
     triggerToast('❌ Неверный промокод!');
-  }
-}
-
-function saveToDB() {
-  if (db && currentUser.id) {
-    db.from('profiles').update({
-      balance: currentUser.balance,
-      level: currentUser.level,
-      exp: currentUser.exp,
-      rating: currentUser.rating,
-      total_trips: currentUser.total_trips,
-      custom_nickname: currentUser.custom_nickname,
-      owned_cars: currentUser.owned_cars,
-      auto_drivers: currentUser.auto_drivers
-    }).eq('id', currentUser.id).then();
   }
 }
