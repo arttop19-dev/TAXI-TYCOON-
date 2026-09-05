@@ -80,6 +80,29 @@ body { background: #030712; color: #fff; height: 100vh; overflow: hidden; positi
 input { width: 100%; padding: 10px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; outline: none; }
 input:focus { border-color: #3b82f6; }
 
+/* LEADERBOARD PODIUM (ТОП-3) */
+.podium-wrapper { display: flex; align-items: flex-end; justify-content: center; gap: 8px; height: 160px; margin-bottom: 25px; margin-top: 30px; }
+.podium-step { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; width: 31%; border-radius: 16px 16px 0 0; position: relative; background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.1); border-bottom: none; }
+.podium-1 { height: 140px; background: linear-gradient(to top, rgba(245,158,11,0.25), rgba(15,23,42,0.8)); border-top: 2px solid #f59e0b; box-shadow: 0 -15px 30px rgba(245,158,11,0.25); z-index: 3; }
+.podium-2 { height: 110px; background: linear-gradient(to top, rgba(156,163,175,0.2), rgba(15,23,42,0.8)); border-top: 2px solid #9ca3af; box-shadow: 0 -10px 20px rgba(156,163,175,0.15); z-index: 2; }
+.podium-3 { height: 90px; background: linear-gradient(to top, rgba(217,119,6,0.2), rgba(15,23,42,0.8)); border-top: 2px solid #d97706; box-shadow: 0 -10px 20px rgba(217,119,6,0.15); z-index: 1; }
+.podium-avatar { width: 50px; height: 50px; border-radius: 50%; position: absolute; top: -25px; border: 2px solid #fff; background: #000; object-fit: cover; }
+.podium-1 .podium-avatar { width: 66px; height: 66px; top: -33px; border-color: #f59e0b; box-shadow: 0 0 20px rgba(245,158,11,0.8); }
+.podium-2 .podium-avatar { border-color: #9ca3af; box-shadow: 0 0 15px rgba(156,163,175,0.5); }
+.podium-3 .podium-avatar { border-color: #d97706; box-shadow: 0 0 15px rgba(217,119,6,0.5); }
+.podium-name { font-size: 11px; font-weight: bold; color: #fff; margin-top: 35px; text-align: center; width: 95%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.podium-1 .podium-name { margin-top: 42px; }
+.podium-score { font-size: 12px; color: #10b981; font-weight: 900; margin-bottom: 12px; text-shadow: 0 0 5px rgba(16,185,129,0.5); }
+
+/* LEADERBOARD LIST (ТОП-4 И НИЖЕ) */
+.leader-row { display: flex; align-items: center; background: rgba(15,23,42,0.7); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 14px; padding: 12px 15px; margin-bottom: 10px; transition: transform 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+.leader-row:active { transform: scale(0.97); }
+.leader-rank { font-size: 18px; font-weight: 900; width: 35px; color: #3b82f6; text-shadow: 0 0 8px rgba(59,130,246,0.4); }
+.leader-avatar { width: 44px; height: 44px; border-radius: 50%; margin-right: 12px; border: 1px solid rgba(255,255,255,0.1); object-fit: cover; background: #000; }
+.leader-info { flex: 1; overflow: hidden; }
+.leader-name { font-size: 14px; font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+.leader-earned { font-size: 15px; font-weight: 900; color: #10b981; text-shadow: 0 0 5px rgba(16,185,129,0.3); }
+
 /* NAV */
 .nav-bar { display: flex; border-top: 1px solid rgba(59, 130, 246, 0.2); border-radius: 16px 16px 0 0; position: absolute; bottom: 0; width: 100%; z-index: 10; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); }
 .nav-btn { flex: 1; padding: 16px 0; background: none; border: none; color: #6b7280; font-size: 10px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; gap: 4px; }
