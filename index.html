@@ -7,29 +7,91 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="style.css">
+  <style>
+    /* Стили для нового загрузочного экрана */
+    #splash-screen {
+      background: url('https://i.ibb.co.com/JRhNrLrG/C4-EF43-E7-357-D-4034-900-C-3-EBF8-D4-C768-C.png') center/cover no-repeat;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+      padding-bottom: 50px;
+      z-index: 9999;
+    }
+    .splash-content {
+      width: 90%;
+      max-width: 400px;
+    }
+    .loader-card {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+    }
+    .click-to-start-btn {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.8);
+      border: 2px solid #10b981;
+      color: #10b981;
+      font-size: 18px;
+      font-weight: bold;
+      padding: 15px;
+      border-radius: 8px;
+      text-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+      animation: pulseStart 1.5s infinite;
+      cursor: pointer;
+    }
+    @keyframes pulseStart {
+      0% { box-shadow: 0 0 10px rgba(16,185,129,0.2); transform: scale(1); }
+      50% { box-shadow: 0 0 25px rgba(16,185,129,0.6); transform: scale(1.02); }
+      100% { box-shadow: 0 0 10px rgba(16,185,129,0.2); transform: scale(1); }
+    }
+    
+    /* Стили для карточек машин с изображениями */
+    .car-image-container {
+      width: 100%;
+      height: 150px;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .car-image-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .car-class-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      font-size: 10px;
+      font-weight: bold;
+      border-radius: 4px;
+      margin-bottom: 5px;
+    }
+    .class-econom { background: #3b82f6; color: #fff; }
+    .class-comfort { background: #8b5cf6; color: #fff; }
+    .class-business { background: #f59e0b; color: #000; }
+    .class-elite { background: #ef4444; color: #fff; box-shadow: 0 0 8px rgba(239, 68, 68, 0.6); }
+  </style>
 </head>
 <body>
   <canvas id="cyber-bg"></canvas>
 
   <!-- Экран загрузки -->
   <div id="splash-screen" class="screen">
-    <div class="cyber-scanner-grid">
-      <div class="scanner-ring ring-1"></div>
-      <div class="scanner-ring ring-2"></div>
-      <div class="scanner-line"></div>
-    </div>
     <div class="splash-content">
-      <div class="cyber-logo-wrapper">
-        <div class="logo-box glitch-effect">🚖</div>
-        <div class="logo-glow"></div>
-      </div>
-      <h1 class="neon-title">TAXI TYCOON</h1>
-      <p class="subtitle">CYBER-LUXURY EDITION</p>
-      
       <div id="loader-block" class="glass-glow loader-card">
         <div class="loader-status-row">
           <span class="status-dot"></span>
-          <span id="progress-text">СИНХРОНИЗАЦИЯ...</span>
+          <span id="progress-text">СИНХРОНИЗАЦИЯ СЕРВЕРОВ...</span>
           <span id="progress-percent" class="percent-val">0%</span>
         </div>
         <div class="progress-bar-container">
@@ -40,14 +102,7 @@
       </div>
 
       <div id="start-block" class="hidden">
-        <div class="user-card glass-glow">
-          <img id="user-avatar" src="" alt="Avatar">
-          <div class="user-info">
-            <div id="splash-user-name">Загрузка...</div>
-            <div class="user-sub"><span id="splash-user-rating">⭐ 0.00</span> • Уровень <span id="splash-user-level">1</span></div>
-          </div>
-        </div>
-        <button class="btn-neon pulse-btn" onclick="startGame()">ВОЙТИ В СЕТЬ</button>
+        <button class="click-to-start-btn" onclick="startGame()">НАЖМИТЕ ЧТОБЫ НАЧАТЬ</button>
       </div>
     </div>
   </div>
@@ -146,26 +201,27 @@
             <button class="btn-neon-sm" style="width:40%;" onclick="saveNickname()">Сменить</button>
           </div>
         </div>
+        
+        <div class="glass-card" style="margin-top: 15px; padding: 15px;">
+          <div style="font-size: 14px; font-weight: bold; margin-bottom: 12px; color: #f59e0b; display: flex; align-items: center; gap: 6px;">
+            🌐 Статистика Taxi Tycoon
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center;">
+            <div style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px;">
+              <div style="font-size: 11px; color: #9ca3af;">Игроков</div>
+              <div id="stat-players" style="font-size: 15px; font-weight: bold; color: #fff; margin-top: 4px;">...</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px;">
+              <div style="font-size: 11px; color: #9ca3af;">Заработано</div>
+              <div id="stat-earned" style="font-size: 15px; font-weight: bold; color: #10b981; margin-top: 4px;">...</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px;">
+              <div style="font-size: 11px; color: #9ca3af;">Поездок</div>
+              <div id="stat-trips" style="font-size: 15px; font-weight: bold; color: #3b82f6; margin-top: 4px;">...</div>
+            </div>
+          </div>
+        </div>
       </section>
-      <div class="glass-card" style="margin-top: 15px; padding: 15px;">
-  <div style="font-size: 14px; font-weight: bold; margin-bottom: 12px; color: #f59e0b; display: flex; align-items: center; gap: 6px;">
-    🌐 Статистика Taxi Tycoon
-  </div>
-  <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center;">
-    <div style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px;">
-      <div style="font-size: 11px; color: #9ca3af;">Игроков</div>
-      <div id="stat-players" style="font-size: 15px; font-weight: bold; color: #fff; margin-top: 4px;">...</div>
-    </div>
-    <div style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px;">
-      <div style="font-size: 11px; color: #9ca3af;">Заработано</div>
-      <div id="stat-earned" style="font-size: 15px; font-weight: bold; color: #10b981; margin-top: 4px;">...</div>
-    </div>
-    <div style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px;">
-      <div style="font-size: 11px; color: #9ca3af;">Поездок</div>
-      <div id="stat-trips" style="font-size: 15px; font-weight: bold; color: #3b82f6; margin-top: 4px;">...</div>
-    </div>
-  </div>
-</div>
     </main>
 
     <nav class="nav-bar glass-glow">
