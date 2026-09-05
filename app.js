@@ -96,7 +96,7 @@ let currentUser = {
   first_name: tg?.initDataUnsafe?.user?.first_name || 'Гонщик',
   avatar_url: tg?.initDataUnsafe?.user?.photo_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${Math.random()}&backgroundColor=0f172a`,
   balance: 1500, 
-  total_earned: 1500, // <-- ДОБАВЛЕНО: Общий заработок за всю игру
+  total_earned: 1500, 
   level: 1, 
   exp: 0, 
   rating: 4.80, 
@@ -146,7 +146,10 @@ function loadFromLocalStorage() {
       const parsed = JSON.parse(saved);
       if (parsed.telegram_id === currentUser.telegram_id || !tg.initDataUnsafe?.user) {
         currentUser = { ...currentUser, ...parsed };
-        if (!currentUser.total_earned) currentUser.total_earned = currentUser.balance; // Обратная совместимость
+        // ЖЕСТКАЯ ЗАЩИТА: Превращаем в числа, чтобы избежать "1500" + 500 = "1500500"
+        currentUser.balance = Number(currentUser.balance) || 0;
+        currentUser.total_earned = Number(currentUser.total_earned) || currentUser.balance;
+        currentUser.total_trips = Number(currentUser.total_trips) || 0;
       }
     } catch(e) { console.error("Ошибка чтения LocalStorage", e); }
   }
@@ -158,7 +161,10 @@ async function syncWithDatabase() {
     const { data, error } = await db.from('profiles').select('*').eq('telegram_id', currentUser.telegram_id).single();
     if (data) {
         currentUser = { ...currentUser, ...data };
-        if (!currentUser.total_earned) currentUser.total_earned = currentUser.balance; // Обратная совместимость
+        // ЖЕСТКАЯ ЗАЩИТА ПРИ ЧТЕНИИ ИЗ БД
+        currentUser.balance = Number(currentUser.balance) || 0;
+        currentUser.total_earned = Number(currentUser.total_earned) || currentUser.balance;
+        currentUser.total_trips = Number(currentUser.total_trips) || 0;
     }
     localStorage.setItem('cyber_taxi_data', JSON.stringify(currentUser));
   } catch (e) {
@@ -175,12 +181,12 @@ async function saveState() {
       p_telegram_id: currentUser.telegram_id,
       p_first_name: currentUser.first_name,
       p_avatar_url: currentUser.avatar_url,
-      p_balance: currentUser.balance,
-      p_total_earned: currentUser.total_earned, // <-- ДОБАВЛЕНО для БД
+      p_balance: Number(currentUser.balance),
+      p_total_earned: Number(currentUser.total_earned),
       p_level: currentUser.level,
       p_exp: currentUser.exp,
       p_rating: currentUser.rating,
-      p_total_trips: currentUser.total_trips,
+      p_total_trips: Number(currentUser.total_trips),
       p_custom_nickname: currentUser.custom_nickname || ''
     });
     
@@ -293,8 +299,9 @@ function startGameLoops() {
     });
     
     if (passiveIncome > 0) {
-      currentUser.balance += passiveIncome;
-      currentUser.total_earned += passiveIncome; // Учитываем в общем заработке
+      // ИСПОЛЬЗУЕМ NUMBER ДЛЯ ЗАЩИТЫ
+      currentUser.balance = Number(currentUser.balance) + passiveIncome;
+      currentUser.total_earned = Number(currentUser.total_earned) + passiveIncome;
       updateUI();
       saveState();
     }
@@ -412,15 +419,17 @@ function finishOrder(order, log, modal, fuelCost) {
   fuel = Math.max(0, fuel - fuelCost);
   engineCond = Math.max(0, engineCond - Math.floor(Math.random() * 4 + 1));
   
-  let finalReward = order.reward;
+  let finalReward = Number(order.reward);
   if (currentUser.upgrades.includes('vip') && Math.random() > 0.4) {
     finalReward = Math.floor(finalReward * 1.4);
     triggerToast("💸 Клиент оставил щедрые чаевые!");
   }
 
-  currentUser.balance += finalReward;
-  currentUser.total_earned += finalReward; // Учитываем в общем заработке
-  currentUser.total_trips += 1;
+  // СТРОГОЕ ПРИБАВЛЕНИЕ ЧИСЕЛ (ФИКС БАГА С РЕЙТИНГОМ)
+  currentUser.balance = Number(currentUser.balance) + finalReward;
+  currentUser.total_earned = Number(currentUser.total_earned) + finalReward; 
+  currentUser.total_trips = Number(currentUser.total_trips) + 1;
+  
   addEXP(order.dist * 12);
   
   audio.play('coin');
@@ -439,7 +448,7 @@ function finishOrder(order, log, modal, fuelCost) {
 }
 
 function addEXP(amt) {
-  currentUser.exp += amt;
+  currentUser.exp = Number(currentUser.exp) + amt;
   const need = currentUser.level * 180;
   if (currentUser.exp >= need) {
     currentUser.level++;
@@ -455,7 +464,7 @@ function refuel() {
   audio.play('click');
   if (fuel >= 100) return triggerToast('⛽ Бак уже полон!');
   if (currentUser.balance < 250) return triggerToast('❌ Недостаточно средств!');
-  currentUser.balance -= 250; 
+  currentUser.balance = Number(currentUser.balance) - 250; 
   fuel = 100; 
   updateUI(); 
   saveState();
@@ -466,7 +475,7 @@ function repairCar() {
   audio.play('click');
   if (engineCond >= 100) return triggerToast('🔧 Автомобиль в идеальном состоянии!');
   if (currentUser.balance < 600) return triggerToast('❌ Недостаточно средств!');
-  currentUser.balance -= 600; 
+  currentUser.balance = Number(currentUser.balance) - 600; 
   engineCond = 100; 
   updateUI(); 
   saveState();
@@ -526,7 +535,7 @@ function buyCar(id) {
   if (currentUser.level < c.reqLevel) return triggerToast(`🔒 Требуется Уровень ${c.reqLevel}!`);
   if (currentUser.balance < c.price) return triggerToast('❌ Недостаточно средств!');
   
-  currentUser.balance -= c.price;
+  currentUser.balance = Number(currentUser.balance) - c.price;
   currentUser.owned_cars.push(id);
   selectCar(id);
   triggerToast(`🎉 Ключи от ${c.name} ваши!`);
@@ -546,7 +555,7 @@ function hireDriver(id) {
   const cost = Math.floor(c.price * 0.25);
   if (currentUser.balance < cost) return triggerToast('❌ Недостаточно средств на найм!');
   
-  currentUser.balance -= cost;
+  currentUser.balance = Number(currentUser.balance) - cost;
   currentUser.auto_drivers.push(id);
   renderGarage();
   saveState();
@@ -582,7 +591,7 @@ function buyTuning(id) {
   const t = TUNING.find(x => x.id === id);
   if (currentUser.balance < t.price) return triggerToast('❌ Недостаточно средств на установку!');
   
-  currentUser.balance -= t.price;
+  currentUser.balance = Number(currentUser.balance) - t.price;
   currentUser.upgrades.push(id);
   renderTuning();
   saveState();
@@ -590,7 +599,7 @@ function buyTuning(id) {
 }
 
 // ==========================================
-// ЗАЛ СЛАВЫ (КРАСИВЫЙ ПОДИУМ И СПИСОК)
+// ЗАЛ СЛАВЫ
 // ==========================================
 async function loadLeaderboard() {
   const container = document.getElementById('leaderboard-list');
@@ -600,12 +609,9 @@ async function loadLeaderboard() {
   
   try {
     if (!db) throw new Error("Нет подключения к Supabase");
-    
-    // Заменили 'get_top_earners' на 'get_top_by_earned' - ТОП ПО ОБЩЕМУ ЗАРАБОТКУ
     const { data, error } = await db.rpc('get_top_by_earned');
       
     if (error) throw error;
-    
     if (data && data.length > 0) {
       renderBeautifulLeaderboard(data, container);
     } else {
@@ -613,7 +619,6 @@ async function loadLeaderboard() {
     }
   } catch (err) {
     console.warn("Ошибка загрузки рейтинга:", err);
-    // В случае ошибки показываем заглушку, чтобы было видно визуал
     container.innerHTML = `<div style="text-align:center; color:#ef4444; font-size:12px; margin-top:20px;">Данные рейтинга недоступны. Проверьте БД.</div>`;
   }
 }
@@ -621,7 +626,6 @@ async function loadLeaderboard() {
 function renderBeautifulLeaderboard(data, container) {
   let html = '';
   
-  // ================= ПОДИУМ (Топ-3) =================
   if (data.length > 0) {
     const top1 = data[0];
     const top2 = data[1];
@@ -629,7 +633,7 @@ function renderBeautifulLeaderboard(data, container) {
 
     html += `<div class="podium-wrapper">`;
     
-    // 2 место (слева)
+    // 2 место
     if (top2) {
       const earned2 = Number(top2.total_earned || top2.balance || 0).toLocaleString();
       html += `
@@ -643,7 +647,7 @@ function renderBeautifulLeaderboard(data, container) {
       html += `<div class="podium-step podium-2" style="visibility:hidden;"></div>`;
     }
 
-    // 1 место (центр)
+    // 1 место
     const earned1 = Number(top1.total_earned || top1.balance || 0).toLocaleString();
     html += `
       <div class="podium-step podium-1">
@@ -653,7 +657,7 @@ function renderBeautifulLeaderboard(data, container) {
       </div>
     `;
 
-    // 3 место (справа)
+    // 3 место
     if (top3) {
       const earned3 = Number(top3.total_earned || top3.balance || 0).toLocaleString();
       html += `
@@ -667,10 +671,9 @@ function renderBeautifulLeaderboard(data, container) {
       html += `<div class="podium-step podium-3" style="visibility:hidden;"></div>`;
     }
 
-    html += `</div>`; // Конец подиума
+    html += `</div>`;
   }
 
-  // ================= СПИСОК (4+ места) =================
   if (data.length > 3) {
     html += `<div class="leaderboard-list">`;
     for (let i = 3; i < data.length; i++) {
@@ -692,7 +695,6 @@ function renderBeautifulLeaderboard(data, container) {
 
   container.innerHTML = html;
 }
-
 
 // ==========================================
 // ГЛОБАЛЬНАЯ СТАТИСТИКА
@@ -794,6 +796,10 @@ function updateUI() {
   
   const pExp = document.getElementById('profile-exp');
   if(pExp) pExp.innerText = currentUser.exp;
+
+  // ОБНОВЛЕНИЕ СТРОКИ "ОБЩИЙ ЗАРАБОТОК" В ПРОФИЛЕ
+  const pTotalEarned = document.getElementById('profile-total-earned');
+  if(pTotalEarned) pTotalEarned.innerText = '$' + Number(currentUser.total_earned).toLocaleString();
   
   const pAvatar = document.getElementById('profile-avatar');
   if (pAvatar && currentUser.avatar_url) pAvatar.src = currentUser.avatar_url;
