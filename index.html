@@ -177,13 +177,12 @@
         <div id="tuning-list"></div>
       </section>
 
-      <!-- Вкладка: Топ (ПЕРЕРАБОТАНО) -->
+      <!-- Вкладка: Топ -->
       <section id="tab-leaders" class="tab-content hidden">
         <div style="text-align: center; margin-bottom: 5px;">
           <h2 style="font-size: 20px; color: #fff; text-shadow: 0 0 15px rgba(59, 130, 246, 0.8);">🏆 ЗАЛ СЛАВЫ 🏆</h2>
           <p style="font-size: 11px; color: #9ca3af; margin-top: 5px;">Топ игроков по общему заработку</p>
         </div>
-        <!-- Контейнер куда JS вставит Подиум и Список -->
         <div id="leaderboard-list"></div>
       </section>
 
@@ -192,11 +191,27 @@
         <div class="card profile-header-card glass-glow">
           <img id="profile-avatar" src="" alt="Аватар">
           <h2 id="profile-name">Водитель</h2>
-          <div class="profile-stats">
-            <div>Рейтинг: <span id="profile-rating-val">⭐ 4.80</span></div>
-            <div>Заказов: <span id="profile-trips">0</span></div>
-            <div>Опыт: <span id="profile-exp">0</span></div>
+          
+          <!-- ОБНОВЛЕННАЯ СЕТКА СТАТИСТИКИ ПРОФИЛЯ -->
+          <div class="profile-stats" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; text-align: center;">
+            <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px;">
+              <div style="font-size: 10px; color: #9ca3af;">Рейтинг</div>
+              <div id="profile-rating-val" style="color: #f59e0b; font-size: 15px; font-weight: bold; margin-top: 3px;">⭐ 4.80</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px;">
+              <div style="font-size: 10px; color: #9ca3af;">Заказов</div>
+              <div id="profile-trips" style="color: #3b82f6; font-size: 15px; font-weight: bold; margin-top: 3px;">0</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px;">
+              <div style="font-size: 10px; color: #9ca3af;">Опыт (EXP)</div>
+              <div id="profile-exp" style="color: #a855f7; font-size: 15px; font-weight: bold; margin-top: 3px;">0</div>
+            </div>
+            <div style="background: rgba(16,185,129,0.1); padding: 10px; border-radius: 8px; border: 1px solid rgba(16,185,129,0.3);">
+              <div style="font-size: 10px; color: #10b981;">Ваш Общий Заработок</div>
+              <div id="profile-total-earned" style="color: #10b981; font-size: 15px; font-weight: bold; margin-top: 3px;">$0</div>
+            </div>
           </div>
+          
         </div>
         <div class="card glass-card">
           <h3>Позывной (Никнейм)</h3>
@@ -208,7 +223,7 @@
         
         <div class="glass-card" style="margin-top: 15px; padding: 15px;">
           <div style="font-size: 14px; font-weight: bold; margin-bottom: 12px; color: #f59e0b; display: flex; align-items: center; gap: 6px;">
-            🌐 Статистика Taxi Tycoon
+            🌐 Статистика Всех Игроков
           </div>
           <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center;">
             <div style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px;">
