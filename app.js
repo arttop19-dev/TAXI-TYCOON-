@@ -197,6 +197,12 @@ async function saveState() {
     if (!error) {
       pendingEarnedIncrement = 0;
       pendingTripsIncrement = 0;
+      
+      // Автоматически обновляем Зал славы, если пользователь сейчас находится на этой вкладке
+      const leadersTab = document.getElementById('tab-leaders');
+      if (leadersTab && !leadersTab.classList.contains('hidden')) {
+        loadLeaderboard();
+      }
     } else {
       throw error;
     }
