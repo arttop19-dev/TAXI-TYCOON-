@@ -177,10 +177,57 @@
         <div id="tuning-list"></div>
       </section>
 
-      <!-- Вкладка: Топ -->
+      <!-- Вкладка: Топ (Зал Славы) -->
       <section id="tab-leaders" class="tab-content hidden">
-        <h2>Зал Славы</h2>
-        <div id="leaderboard-list"></div>
+        <div class="leaders-header-panel glass-glow" style="margin-bottom: 15px; padding: 15px; border-radius: 12px; text-align: center; background: linear-gradient(135deg, rgba(15,23,42,0.9), rgba(30,41,59,0.8));">
+          <h2 style="font-size: 18px; color: #f59e0b; margin-bottom: 4px; text-shadow: 0 0 10px rgba(245,158,11,0.4);">🏆 ЗАЛ СЛАВЫ CYBER WORLD</h2>
+          <p style="font-size: 11px; color: #9ca3af;">Элита городской асфальтовой лиги. Обновление в реальном времени.</p>
+        </div>
+
+        <!-- Подиум Топ-3 -->
+        <div id="podium-container" style="display: flex; justify-content: center; align-items: flex-end; gap: 10px; margin-bottom: 20px; padding: 10px 0;">
+          <!-- 2 место -->
+          <div class="podium-item" style="flex: 1; background: rgba(30,41,59,0.7); border: 1px solid rgba(148,163,184,0.3); border-radius: 12px; padding: 12px 8px; text-align: center; position: relative;">
+            <div style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: #94a3b8; color: #0f172a; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 6px;">#2</div>
+            <div style="font-size: 24px; margin: 5px 0;">🥈</div>
+            <div id="podium-2-name" style="font-size: 12px; font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Driver #2</div>
+            <div id="podium-2-score" style="font-size: 11px; color: #10b981; font-weight: bold; margin-top: 2px;">$0</div>
+          </div>
+
+          <!-- 1 место -->
+          <div class="podium-item" style="flex: 1.1; background: linear-gradient(180deg, rgba(245,158,11,0.15), rgba(30,41,59,0.8)); border: 2px solid #f59e0b; border-radius: 14px; padding: 16px 8px; text-align: center; position: relative; box-shadow: 0 0 20px rgba(245,158,11,0.2); transform: translateY(-8px);">
+            <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #f59e0b; color: #0f172a; font-size: 11px; font-weight: bold; padding: 2px 8px; border-radius: 6px; box-shadow: 0 0 8px rgba(245,158,11,0.5);">👑 #1</div>
+            <div style="font-size: 28px; margin: 5px 0;">🥇</div>
+            <div id="podium-1-name" style="font-size: 13px; font-weight: bold; color: #f59e0b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">King #1</div>
+            <div id="podium-1-score" style="font-size: 12px; color: #10b981; font-weight: bold; margin-top: 2px;">$0</div>
+          </div>
+
+          <!-- 3 место -->
+          <div class="podium-item" style="flex: 1; background: rgba(30,41,59,0.7); border: 1px solid rgba(217,119,6,0.3); border-radius: 12px; padding: 12px 8px; text-align: center; position: relative;">
+            <div style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: #d97706; color: #fff; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 6px;">#3</div>
+            <div style="font-size: 24px; margin: 5px 0;">🥉</div>
+            <div id="podium-3-name" style="font-size: 12px; font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Driver #3</div>
+            <div id="podium-3-score" style="font-size: 11px; color: #10b981; font-weight: bold; margin-top: 2px;">$0</div>
+          </div>
+        </div>
+
+        <!-- Карточка твоего личного места -->
+        <div class="glass-card" style="margin-bottom: 15px; border: 1px solid rgba(59,130,246,0.5); background: rgba(59,130,246,0.08); display: flex; align-items: center; justify-content: space-between; padding: 12px 15px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div id="my-rank-badge" style="width: 32px; height: 32px; background: rgba(59,130,246,0.2); border: 1px solid #3b82f6; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 13px; color: #60a5fa;">#--</div>
+            <div>
+              <div style="font-size: 12px; color: #9ca3af;">Твоя позиция в рейтинге</div>
+              <div id="my-rank-name" style="font-size: 14px; font-weight: bold; color: #fff;">Водитель</div>
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div id="my-rank-score" style="font-size: 14px; font-weight: bold; color: #10b981;">$0</div>
+          </div>
+        </div>
+
+        <!-- Остальной список игроков -->
+        <div style="font-size: 12px; font-weight: bold; color: #9ca3af; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Остальные участники лиги</div>
+        <div id="leaderboard-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
       </section>
 
       <!-- Вкладка: Профиль -->
