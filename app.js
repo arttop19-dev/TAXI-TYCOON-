@@ -115,6 +115,10 @@ let activeOrders = [];
 let isDriving = false;
 let autoSaveInterval;
 
+// Инкременты для отправки точной дельты в базу данных
+let pendingEarnedIncrement = 0;
+let pendingTripsIncrement = 0;
+
 // ==========================================
 // ЗАПУСК И СИНХРОНИЗАЦИЯ
 // ==========================================
@@ -146,7 +150,6 @@ function loadFromLocalStorage() {
       const parsed = JSON.parse(saved);
       if (parsed.telegram_id === currentUser.telegram_id || !tg.initDataUnsafe?.user) {
         currentUser = { ...currentUser, ...parsed };
-        // ЖЕСТКАЯ ЗАЩИТА: Превращаем в числа, чтобы избежать "1500" + 500 = "1500500"
         currentUser.balance = Number(currentUser.balance) || 0;
         currentUser.total_earned = Number(currentUser.total_earned) || currentUser.balance;
         currentUser.total_trips = Number(currentUser.total_trips) || 0;
@@ -161,7 +164,6 @@ async function syncWithDatabase() {
     const { data, error } = await db.from('profiles').select('*').eq('telegram_id', currentUser.telegram_id).single();
     if (data) {
         currentUser = { ...currentUser, ...data };
-        // ЖЕСТКАЯ ЗАЩИТА ПРИ ЧТЕНИИ ИЗ БД
         currentUser.balance = Number(currentUser.balance) || 0;
         currentUser.total_earned = Number(currentUser.total_earned) || currentUser.balance;
         currentUser.total_trips = Number(currentUser.total_trips) || 0;
@@ -187,10 +189,17 @@ async function saveState() {
       p_exp: currentUser.exp,
       p_rating: currentUser.rating,
       p_total_trips: Number(currentUser.total_trips),
-      p_custom_nickname: currentUser.custom_nickname || ''
+      p_custom_nickname: currentUser.custom_nickname || '',
+      p_earned_increment: Number(pendingEarnedIncrement),
+      p_trips_increment: Number(pendingTripsIncrement)
     });
     
-    if (error) throw error;
+    if (!error) {
+      pendingEarnedIncrement = 0;
+      pendingTripsIncrement = 0;
+    } else {
+      throw error;
+    }
   } catch (e) {
     console.warn("Ошибка сохранения в БД:", e);
   }
@@ -299,9 +308,9 @@ function startGameLoops() {
     });
     
     if (passiveIncome > 0) {
-      // ИСПОЛЬЗУЕМ NUMBER ДЛЯ ЗАЩИТЫ
       currentUser.balance = Number(currentUser.balance) + passiveIncome;
       currentUser.total_earned = Number(currentUser.total_earned) + passiveIncome;
+      pendingEarnedIncrement += passiveIncome;
       updateUI();
       saveState();
     }
@@ -425,11 +434,13 @@ function finishOrder(order, log, modal, fuelCost) {
     triggerToast("💸 Клиент оставил щедрые чаевые!");
   }
 
-  // СТРОГОЕ ПРИБАВЛЕНИЕ ЧИСЕЛ (ФИКС БАГА С РЕЙТИНГОМ)
   currentUser.balance = Number(currentUser.balance) + finalReward;
   currentUser.total_earned = Number(currentUser.total_earned) + finalReward; 
   currentUser.total_trips = Number(currentUser.total_trips) + 1;
   
+  pendingEarnedIncrement += finalReward;
+  pendingTripsIncrement += 1;
+
   addEXP(order.dist * 12);
   
   audio.play('coin');
@@ -797,7 +808,6 @@ function updateUI() {
   const pExp = document.getElementById('profile-exp');
   if(pExp) pExp.innerText = currentUser.exp;
 
-  // ОБНОВЛЕНИЕ СТРОКИ "ОБЩИЙ ЗАРАБОТОК" В ПРОФИЛЕ
   const pTotalEarned = document.getElementById('profile-total-earned');
   if(pTotalEarned) pTotalEarned.innerText = '$' + Number(currentUser.total_earned).toLocaleString();
   
