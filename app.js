@@ -582,37 +582,79 @@ function buyTuning(id) {
 }
 
 // ==========================================
-// ЗАЛ СЛАВЫ (БЕЗОПАСНЫЙ ЗАПРОС ЧЕРЕЗ RPC)
+// ЗАЛ СЛАВЫ (ПОДИУМ И РЕЙТИНГ)
 // ==========================================
 async function loadLeaderboard() {
-  const container = document.getElementById('leaderboard-list');
-  if(!container) return;
-  
+  const listContainer = document.getElementById('leaderboard-list');
+  const myRankBadge = document.getElementById('my-rank-badge');
+  const myRankName = document.getElementById('my-rank-name');
+  const myRankScore = document.getElementById('my-rank-score');
+
   try {
     if (!db) throw new Error("Нет подключения к Supabase");
     
     const { data, error } = await db.rpc('get_top_earners');
-      
     if (error) throw error;
-    
-    if (data && data.length > 0) {
-      container.innerHTML = data.map((item, i) => `
-        <div class="glass-card garage-item" style="display:flex; justify-content:space-between; align-items:center; padding: 12px 15px;">
-          <div style="display:flex; gap:10px; align-items:center;">
-            <b style="font-size: 16px; color: ${i === 0 ? '#f59e0b' : i === 1 ? '#9ca3af' : i === 2 ? '#d97706' : '#3b82f6'};">#${i + 1}</b> 
-            <span style="font-weight: 500;">${item.custom_nickname || item.first_name || 'Неизвестный'}</span>
-          </div>
-          <div style="color:#10b981; font-weight:bold; font-size: 15px;">$${Number(item.balance).toLocaleString()}</div>
-        </div>
-      `).join('');
-      return;
-    } else {
-      container.innerHTML = `<div style="text-align:center; color:#9ca3af; font-size:12px; margin-top:20px;">Рейтинг пока пуст</div>`;
-      return;
+
+    const leaders = data || [];
+
+    // Заполняем подиум Топ-3
+    if (leaders[0]) {
+      document.getElementById('podium-1-name').innerText = leaders[0].custom_nickname || leaders[0].first_name || 'King #1';
+      document.getElementById('podium-1-score').innerText = `$${Number(leaders[0].balance).toLocaleString()}`;
     }
+    if (leaders[1]) {
+      document.getElementById('podium-2-name').innerText = leaders[1].custom_nickname || leaders[1].first_name || 'Driver #2';
+      document.getElementById('podium-2-score').innerText = `$${Number(leaders[1].balance).toLocaleString()}`;
+    }
+    if (leaders[2]) {
+      document.getElementById('podium-3-name').innerText = leaders[2].custom_nickname || leaders[2].first_name || 'Driver #3';
+      document.getElementById('podium-3-score').innerText = `$${Number(leaders[2].balance).toLocaleString()}`;
+    }
+
+    // Ищем позицию текущего игрока в общем списке
+    const myIndex = leaders.findIndex(u => String(u.telegram_id) === String(currentUser.telegram_id));
+    const myName = currentUser.custom_nickname || currentUser.first_name || 'Водитель';
+
+    if (myRankBadge && myRankName && myRankScore) {
+      if (myIndex !== -1) {
+        myRankBadge.innerText = `#${myIndex + 1}`;
+        myRankName.innerText = myName;
+        myRankScore.innerText = `$${Number(currentUser.balance).toLocaleString()}`;
+      } else {
+        myRankBadge.innerText = '#--';
+        myRankName.innerText = myName;
+        myRankScore.innerText = `$${Number(currentUser.balance).toLocaleString()}`;
+      }
+    }
+
+    // Рендерим остальных участников с 4-го места и ниже
+    if (listContainer) {
+      if (leaders.length > 3) {
+        let html = '';
+        for (let i = 3; i < leaders.length; i++) {
+          const user = leaders[i];
+          html += `
+            <div class="glass-card garage-item" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: 10px; background: rgba(15,23,42,0.6);">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 12px; font-weight: bold; color: #64748b; width: 24px;">#${i + 1}</span>
+                <span style="font-size: 13px; font-weight: bold; color: #e2e8f0;">${user.custom_nickname || user.first_name || 'Водитель'}</span>
+              </div>
+              <span style="font-size: 13px; font-weight: bold; color: #10b981;">$${Number(user.balance).toLocaleString()}</span>
+            </div>
+          `;
+        }
+        listContainer.innerHTML = html;
+      } else {
+        listContainer.innerHTML = `<div style="text-align:center; color:#9ca3af; font-size:12px; margin-top:10px;">Остальных участников пока нет</div>`;
+      }
+    }
+
   } catch (err) {
     console.warn("Ошибка загрузки рейтинга:", err);
-    container.innerHTML = `<div style="text-align:center; color:#ef4444; font-size:12px; margin-top:20px;">Данные рейтинга недоступны. Проверьте БД.</div>`;
+    if (listContainer) {
+      listContainer.innerHTML = `<div style="text-align:center; color:#ef4444; font-size:12px; margin-top:20px;">Данные рейтинга недоступны. Проверьте БД.</div>`;
+    }
   }
 }
 
