@@ -96,7 +96,6 @@ let currentUser = {
   first_name: tg?.initDataUnsafe?.user?.first_name || 'Гонщик',
   avatar_url: tg?.initDataUnsafe?.user?.photo_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${Math.random()}&backgroundColor=0f172a`,
   balance: 1500, 
-  total_earned: 1500, 
   level: 1, 
   exp: 0, 
   rating: 4.80, 
@@ -114,10 +113,6 @@ let currentWeather = WEATHERS[0];
 let activeOrders = [];
 let isDriving = false;
 let autoSaveInterval;
-
-// Инкременты для отправки точной дельты в базу данных
-let pendingEarnedIncrement = 0;
-let pendingTripsIncrement = 0;
 
 // ==========================================
 // ЗАПУСК И СИНХРОНИЗАЦИЯ
@@ -150,9 +145,6 @@ function loadFromLocalStorage() {
       const parsed = JSON.parse(saved);
       if (parsed.telegram_id === currentUser.telegram_id || !tg.initDataUnsafe?.user) {
         currentUser = { ...currentUser, ...parsed };
-        currentUser.balance = Number(currentUser.balance) || 0;
-        currentUser.total_earned = Number(currentUser.total_earned) || currentUser.balance;
-        currentUser.total_trips = Number(currentUser.total_trips) || 0;
       }
     } catch(e) { console.error("Ошибка чтения LocalStorage", e); }
   }
@@ -162,12 +154,7 @@ async function syncWithDatabase() {
   if (!db || !currentUser.telegram_id) return;
   try {
     const { data, error } = await db.from('profiles').select('*').eq('telegram_id', currentUser.telegram_id).single();
-    if (data) {
-        currentUser = { ...currentUser, ...data };
-        currentUser.balance = Number(currentUser.balance) || 0;
-        currentUser.total_earned = Number(currentUser.total_earned) || currentUser.balance;
-        currentUser.total_trips = Number(currentUser.total_trips) || 0;
-    }
+    if (data) currentUser = { ...currentUser, ...data };
     localStorage.setItem('cyber_taxi_data', JSON.stringify(currentUser));
   } catch (e) {
     console.warn("Чтение профиля из БД ограничено RLS. Используем локальные данные.");
@@ -183,29 +170,15 @@ async function saveState() {
       p_telegram_id: currentUser.telegram_id,
       p_first_name: currentUser.first_name,
       p_avatar_url: currentUser.avatar_url,
-      p_balance: Number(currentUser.balance),
-      p_total_earned: Number(currentUser.total_earned),
+      p_balance: currentUser.balance,
       p_level: currentUser.level,
       p_exp: currentUser.exp,
       p_rating: currentUser.rating,
-      p_total_trips: Number(currentUser.total_trips),
-      p_custom_nickname: currentUser.custom_nickname || '',
-      p_earned_increment: Number(pendingEarnedIncrement),
-      p_trips_increment: Number(pendingTripsIncrement)
+      p_total_trips: currentUser.total_trips,
+      p_custom_nickname: currentUser.custom_nickname || ''
     });
     
-    if (!error) {
-      pendingEarnedIncrement = 0;
-      pendingTripsIncrement = 0;
-      
-      // Автоматически обновляем Зал славы, если пользователь сейчас находится на этой вкладке
-      const leadersTab = document.getElementById('tab-leaders');
-      if (leadersTab && !leadersTab.classList.contains('hidden')) {
-        loadLeaderboard();
-      }
-    } else {
-      throw error;
-    }
+    if (error) throw error;
   } catch (e) {
     console.warn("Ошибка сохранения в БД:", e);
   }
@@ -314,9 +287,7 @@ function startGameLoops() {
     });
     
     if (passiveIncome > 0) {
-      currentUser.balance = Number(currentUser.balance) + passiveIncome;
-      currentUser.total_earned = Number(currentUser.total_earned) + passiveIncome;
-      pendingEarnedIncrement += passiveIncome;
+      currentUser.balance += passiveIncome;
       updateUI();
       saveState();
     }
@@ -434,19 +405,14 @@ function finishOrder(order, log, modal, fuelCost) {
   fuel = Math.max(0, fuel - fuelCost);
   engineCond = Math.max(0, engineCond - Math.floor(Math.random() * 4 + 1));
   
-  let finalReward = Number(order.reward);
+  let finalReward = order.reward;
   if (currentUser.upgrades.includes('vip') && Math.random() > 0.4) {
     finalReward = Math.floor(finalReward * 1.4);
     triggerToast("💸 Клиент оставил щедрые чаевые!");
   }
 
-  currentUser.balance = Number(currentUser.balance) + finalReward;
-  currentUser.total_earned = Number(currentUser.total_earned) + finalReward; 
-  currentUser.total_trips = Number(currentUser.total_trips) + 1;
-  
-  pendingEarnedIncrement += finalReward;
-  pendingTripsIncrement += 1;
-
+  currentUser.balance += finalReward;
+  currentUser.total_trips += 1;
   addEXP(order.dist * 12);
   
   audio.play('coin');
@@ -465,7 +431,7 @@ function finishOrder(order, log, modal, fuelCost) {
 }
 
 function addEXP(amt) {
-  currentUser.exp = Number(currentUser.exp) + amt;
+  currentUser.exp += amt;
   const need = currentUser.level * 180;
   if (currentUser.exp >= need) {
     currentUser.level++;
@@ -481,7 +447,7 @@ function refuel() {
   audio.play('click');
   if (fuel >= 100) return triggerToast('⛽ Бак уже полон!');
   if (currentUser.balance < 250) return triggerToast('❌ Недостаточно средств!');
-  currentUser.balance = Number(currentUser.balance) - 250; 
+  currentUser.balance -= 250; 
   fuel = 100; 
   updateUI(); 
   saveState();
@@ -492,7 +458,7 @@ function repairCar() {
   audio.play('click');
   if (engineCond >= 100) return triggerToast('🔧 Автомобиль в идеальном состоянии!');
   if (currentUser.balance < 600) return triggerToast('❌ Недостаточно средств!');
-  currentUser.balance = Number(currentUser.balance) - 600; 
+  currentUser.balance -= 600; 
   engineCond = 100; 
   updateUI(); 
   saveState();
@@ -552,7 +518,7 @@ function buyCar(id) {
   if (currentUser.level < c.reqLevel) return triggerToast(`🔒 Требуется Уровень ${c.reqLevel}!`);
   if (currentUser.balance < c.price) return triggerToast('❌ Недостаточно средств!');
   
-  currentUser.balance = Number(currentUser.balance) - c.price;
+  currentUser.balance -= c.price;
   currentUser.owned_cars.push(id);
   selectCar(id);
   triggerToast(`🎉 Ключи от ${c.name} ваши!`);
@@ -572,7 +538,7 @@ function hireDriver(id) {
   const cost = Math.floor(c.price * 0.25);
   if (currentUser.balance < cost) return triggerToast('❌ Недостаточно средств на найм!');
   
-  currentUser.balance = Number(currentUser.balance) - cost;
+  currentUser.balance -= cost;
   currentUser.auto_drivers.push(id);
   renderGarage();
   saveState();
@@ -608,7 +574,7 @@ function buyTuning(id) {
   const t = TUNING.find(x => x.id === id);
   if (currentUser.balance < t.price) return triggerToast('❌ Недостаточно средств на установку!');
   
-  currentUser.balance = Number(currentUser.balance) - t.price;
+  currentUser.balance -= t.price;
   currentUser.upgrades.push(id);
   renderTuning();
   saveState();
@@ -616,101 +582,38 @@ function buyTuning(id) {
 }
 
 // ==========================================
-// ЗАЛ СЛАВЫ
+// ЗАЛ СЛАВЫ (БЕЗОПАСНЫЙ ЗАПРОС ЧЕРЕЗ RPC)
 // ==========================================
 async function loadLeaderboard() {
   const container = document.getElementById('leaderboard-list');
   if(!container) return;
   
-  container.innerHTML = `<div style="text-align:center; padding:20px; color:#3b82f6;">Загрузка данных нейросети...</div>`;
-  
   try {
     if (!db) throw new Error("Нет подключения к Supabase");
-    const { data, error } = await db.rpc('get_top_by_earned');
+    
+    const { data, error } = await db.rpc('get_top_earners');
       
     if (error) throw error;
+    
     if (data && data.length > 0) {
-      renderBeautifulLeaderboard(data, container);
+      container.innerHTML = data.map((item, i) => `
+        <div class="glass-card garage-item" style="display:flex; justify-content:space-between; align-items:center; padding: 12px 15px;">
+          <div style="display:flex; gap:10px; align-items:center;">
+            <b style="font-size: 16px; color: ${i === 0 ? '#f59e0b' : i === 1 ? '#9ca3af' : i === 2 ? '#d97706' : '#3b82f6'};">#${i + 1}</b> 
+            <span style="font-weight: 500;">${item.custom_nickname || item.first_name || 'Неизвестный'}</span>
+          </div>
+          <div style="color:#10b981; font-weight:bold; font-size: 15px;">$${Number(item.balance).toLocaleString()}</div>
+        </div>
+      `).join('');
+      return;
     } else {
       container.innerHTML = `<div style="text-align:center; color:#9ca3af; font-size:12px; margin-top:20px;">Рейтинг пока пуст</div>`;
+      return;
     }
   } catch (err) {
     console.warn("Ошибка загрузки рейтинга:", err);
     container.innerHTML = `<div style="text-align:center; color:#ef4444; font-size:12px; margin-top:20px;">Данные рейтинга недоступны. Проверьте БД.</div>`;
   }
-}
-
-function renderBeautifulLeaderboard(data, container) {
-  let html = '';
-  
-  if (data.length > 0) {
-    const top1 = data[0];
-    const top2 = data[1];
-    const top3 = data[2];
-
-    html += `<div class="podium-wrapper">`;
-    
-    // 2 место
-    if (top2) {
-      const earned2 = Number(top2.total_earned || top2.balance || 0).toLocaleString();
-      html += `
-        <div class="podium-step podium-2">
-          <img class="podium-avatar" src="${top2.avatar_url || 'https://api.dicebear.com/7.x/bottts/svg?seed='+top2.telegram_id+'&backgroundColor=0f172a'}" alt="2">
-          <div class="podium-name">${top2.custom_nickname || top2.first_name || 'Гонщик'}</div>
-          <div class="podium-score">$${earned2}</div>
-        </div>
-      `;
-    } else {
-      html += `<div class="podium-step podium-2" style="visibility:hidden;"></div>`;
-    }
-
-    // 1 место
-    const earned1 = Number(top1.total_earned || top1.balance || 0).toLocaleString();
-    html += `
-      <div class="podium-step podium-1">
-        <img class="podium-avatar" src="${top1.avatar_url || 'https://api.dicebear.com/7.x/bottts/svg?seed='+top1.telegram_id+'&backgroundColor=0f172a'}" alt="1">
-        <div class="podium-name" style="color:#f59e0b; font-size:13px; font-weight:900;">${top1.custom_nickname || top1.first_name || 'Гонщик'}</div>
-        <div class="podium-score" style="font-size:13px;">$${earned1}</div>
-      </div>
-    `;
-
-    // 3 место
-    if (top3) {
-      const earned3 = Number(top3.total_earned || top3.balance || 0).toLocaleString();
-      html += `
-        <div class="podium-step podium-3">
-          <img class="podium-avatar" src="${top3.avatar_url || 'https://api.dicebear.com/7.x/bottts/svg?seed='+top3.telegram_id+'&backgroundColor=0f172a'}" alt="3">
-          <div class="podium-name">${top3.custom_nickname || top3.first_name || 'Гонщик'}</div>
-          <div class="podium-score">$${earned3}</div>
-        </div>
-      `;
-    } else {
-      html += `<div class="podium-step podium-3" style="visibility:hidden;"></div>`;
-    }
-
-    html += `</div>`;
-  }
-
-  if (data.length > 3) {
-    html += `<div class="leaderboard-list">`;
-    for (let i = 3; i < data.length; i++) {
-      const player = data[i];
-      const earned = Number(player.total_earned || player.balance || 0).toLocaleString();
-      html += `
-        <div class="leader-row">
-          <div class="leader-rank">#${i + 1}</div>
-          <img class="leader-avatar" src="${player.avatar_url || 'https://api.dicebear.com/7.x/bottts/svg?seed='+player.telegram_id+'&backgroundColor=0f172a'}" alt="${i+1}">
-          <div class="leader-info">
-            <div class="leader-name">${player.custom_nickname || player.first_name || 'Гонщик'}</div>
-          </div>
-          <div class="leader-earned">$${earned}</div>
-        </div>
-      `;
-    }
-    html += `</div>`;
-  }
-
-  container.innerHTML = html;
 }
 
 // ==========================================
@@ -813,9 +716,6 @@ function updateUI() {
   
   const pExp = document.getElementById('profile-exp');
   if(pExp) pExp.innerText = currentUser.exp;
-
-  const pTotalEarned = document.getElementById('profile-total-earned');
-  if(pTotalEarned) pTotalEarned.innerText = '$' + Number(currentUser.total_earned).toLocaleString();
   
   const pAvatar = document.getElementById('profile-avatar');
   if (pAvatar && currentUser.avatar_url) pAvatar.src = currentUser.avatar_url;
