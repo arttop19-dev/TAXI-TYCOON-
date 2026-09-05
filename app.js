@@ -55,13 +55,22 @@ function toggleAudio() {
 // БАЗА ДАННЫХ ИГРЫ (ЭКОНОМИКА И БАЛАНС)
 // ==========================================
 const CARS = [
-  { id: 'vaz2107', name: 'ВАЗ-2107 Cyber', price: 0, reqLevel: 1, speed: 1.0, fuelDrain: 1.0, passive: 10, riskResist: 0 },
-  { id: 'seat1991', name: 'SEAT Toledo 1991 Retro', price: 3500, reqLevel: 2, speed: 1.2, fuelDrain: 1.2, passive: 25, riskResist: 5 },
-  { id: 'vaz2115', name: 'ВАЗ-2115 Dark Glass', price: 7000, reqLevel: 3, speed: 1.4, fuelDrain: 1.4, passive: 45, riskResist: 10 },
-  { id: 'priora', name: 'Lada Priora Stance', price: 18000, reqLevel: 4, speed: 1.7, fuelDrain: 1.6, passive: 90, riskResist: 15 },
-  { id: 'passatb5', name: 'VW Passat B5 Turbo', price: 42000, reqLevel: 5, speed: 2.0, fuelDrain: 2.0, passive: 200, riskResist: 25 },
-  { id: 'lexuslx', name: 'Lexus LX 470 VIP', price: 110000, reqLevel: 6, speed: 2.5, fuelDrain: 3.0, passive: 500, riskResist: 40 },
-  { id: 'maybach', name: 'Maybach Cyber-Edition', price: 350000, reqLevel: 8, speed: 3.5, fuelDrain: 4.0, passive: 1500, riskResist: 60 }
+  // ЭКОНОМ
+  { id: 'vaz2107', name: 'ВАЗ - 2107', class: 'ЭКОНОМ', cssClass: 'class-econom', image: 'https://i.ibb.co.com/Y4KpBGv2/5-F08-F869-B7-DB-423-E-A8-F1-8-B219-CF1-EF60.png', price: 0, reqLevel: 1, speed: 1.0, fuelDrain: 1.0, passive: 10, riskResist: 0 },
+  { id: 'seat1991', name: 'SEAT TOLEDO', class: 'ЭКОНОМ', cssClass: 'class-econom', image: 'https://i.ibb.co.com/jjL5gvN/4-D7-E6-C8-A-D624-4-CA2-9-FFB-05-CC9-AB4426-D.png', price: 3500, reqLevel: 2, speed: 1.2, fuelDrain: 1.1, passive: 20, riskResist: 2 },
+  { id: 'vaz2115', name: 'ВАЗ - 2115', class: 'ЭКОНОМ', cssClass: 'class-econom', image: 'https://i.ibb.co.com/nNVXD9V7/CE50-CB34-C549-44-BA-8140-023978-A0521-A.png', price: 8000, reqLevel: 3, speed: 1.3, fuelDrain: 1.2, passive: 35, riskResist: 5 },
+  { id: 'priora', name: 'LADA Priora', class: 'ЭКОНОМ', cssClass: 'class-econom', image: 'https://i.ibb.co.com/PvF68tx2/9-B8592-B0-8129-41-FB-81-A1-65-EB67-E26-B88.png', price: 15000, reqLevel: 4, speed: 1.5, fuelDrain: 1.3, passive: 50, riskResist: 10 },
+  // КОМФОРТ
+  { id: 'passatb5', name: 'PASSAT B5', class: 'КОМФОРТ', cssClass: 'class-comfort', image: 'https://i.ibb.co.com/23wYDHd2/27-A556-C7-E2-C5-4189-B6-F7-42-F4-DD159907.png', price: 35000, reqLevel: 5, speed: 1.8, fuelDrain: 1.5, passive: 90, riskResist: 15 },
+  { id: 'lexuslx', name: 'LEXUS LX 470', class: 'КОМФОРТ', cssClass: 'class-comfort', image: 'https://i.ibb.co.com/9kgCkDq9/018-D6-BB3-9-E53-41-F7-B1-EF-2809-C17643-DE.png', price: 65000, reqLevel: 6, speed: 2.0, fuelDrain: 1.8, passive: 150, riskResist: 20 },
+  { id: 'bmwe39', name: 'BMW e39', class: 'КОМФОРТ', cssClass: 'class-comfort', image: 'https://i.ibb.co.com/Jw1M84rw/5-https://i.ibb.co.com/8gNKAFDCBB0-D82-F-4-FA7-AB73-89-A945-B29501.png', price: 110000, reqLevel: 7, speed: 2.2, fuelDrain: 2.0, passive: 250, riskResist: 25 },
+  { id: 'mercedes200', name: 'MERSEDES 200', class: 'КОМФОРТ', cssClass: 'class-comfort', image: 'https://i.ibb.co.com/S7PjhqHz/2559-D4-F7-27-BA-4985-8-A1-A-C349688-CCBE9.png', price: 180000, reqLevel: 8, speed: 2.4, fuelDrain: 2.1, passive: 350, riskResist: 30 },
+  // БИЗНЕС
+  { id: 'bmwx5', name: 'BMW X5', class: 'БИЗНЕС', cssClass: 'class-business', image: 'https://i.ibb.co.com/5hJ1cG5R/99474-E44-5570-418-C-A0-E0-ECE835-C58-E6-D.png', price: 300000, reqLevel: 10, speed: 2.8, fuelDrain: 2.5, passive: 550, riskResist: 40 },
+  { id: 'changan', name: 'Changan Lamore', class: 'БИЗНЕС', cssClass: 'class-business', image: 'https://i.ibb.co.com/FqhMPv0q/FE7-A0-CBE-CC97-40-FC-9802-7-C1-B81-DFF540.png', price: 450000, reqLevel: 12, speed: 3.0, fuelDrain: 2.6, passive: 800, riskResist: 45 },
+  // ЭЛИТА
+  { id: 'maybach', name: 'MAYBAX', class: 'ЭЛИТА', cssClass: 'class-elite', image: 'https://i.ibb.co.com/PzvLkkw5/1-E69-B68-A-C6-F4-4-E6-C-855-E-4-AECC34-A0-BA3.png', price: 800000, reqLevel: 15, speed: 3.5, fuelDrain: 3.0, passive: 1500, riskResist: 60 },
+  { id: 'panamera', name: 'PORSH PANAMERA', class: 'ЭЛИТА', cssClass: 'class-elite', image: 'https://i.ibb.co.com/prQ1RWSZ/6793-F77-B-DD6-E-4-B92-87-E2-20-EB26-FC8-C11.png', price: 1500000, reqLevel: 18, speed: 4.0, fuelDrain: 3.5, passive: 2500, riskResist: 75 }
 ];
 
 const TUNING = [
@@ -84,7 +93,7 @@ const WEATHERS = [
 // ==========================================
 let currentUser = {
   telegram_id: tg?.initDataUnsafe?.user?.id || Math.floor(Math.random() * 100000000),
-  first_name: tg?.initDataUnsafe?.user?.first_name || 'Кибер-Гонщик',
+  first_name: tg?.initDataUnsafe?.user?.first_name || 'Гонщик',
   avatar_url: tg?.initDataUnsafe?.user?.photo_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${Math.random()}&backgroundColor=0f172a`,
   balance: 1500, 
   level: 1, 
@@ -221,21 +230,17 @@ function simulateLoading() {
     if(txt) txt.innerText = p + '%';
     
     if (log) {
-      if (p > 20 && p < 50) log.innerText = "> Подключение к спутникам навигации...";
-      if (p > 50 && p < 80) log.innerText = "> Синхронизация гаража и баланса...";
-      if (p > 80 && p < 100) log.innerText = "> Расчет погодных условий...";
+      if (p > 20 && p < 50) log.innerText = "> Подключение к серверам...";
+      if (p > 50 && p < 80) log.innerText = "> Синхронизация профиля...";
+      if (p > 80 && p < 100) log.innerText = "> Загрузка автопарка...";
     }
     
     if (p === 100) {
       clearInterval(int);
-      if(log) log.innerText = "> Система готова. Запуск ядра.";
+      if(log) log.innerText = "> Система готова.";
       setTimeout(() => {
         document.getElementById('loader-block').classList.add('hidden');
         document.getElementById('start-block').classList.remove('hidden');
-        document.getElementById('splash-user-name').innerText = currentUser.custom_nickname || currentUser.first_name;
-        document.getElementById('splash-user-rating').innerText = `⭐ ${currentUser.rating.toFixed(2)}`;
-        document.getElementById('splash-user-level').innerText = currentUser.level;
-        document.getElementById('user-avatar').src = currentUser.avatar_url;
       }, 600);
     }
   }, 120);
@@ -474,27 +479,31 @@ function renderGarage() {
     const isSelected = currentCar.id === c.id;
     return `
       <div class="glass-card garage-item">
+        <div class="car-image-container">
+           <img src="${c.image}" alt="${c.name}">
+        </div>
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <div>
+            <span class="car-class-badge ${c.cssClass}">${c.class}</span><br>
             <b style="font-size:15px;">${c.name}</b> <span style="font-size:10px; color:#f59e0b;">(Ур. ${c.reqLevel})</span>
             <div style="font-size:11px; color:#9ca3af; margin-top:4px; line-height:1.4;">
               Множитель скорости: x${c.speed} <br>
               Пассив: +$${c.passive}/10с | Броня: ${c.riskResist}%
             </div>
           </div>
-          <div>
+          <div style="text-align: right; display: flex; flex-direction: column; gap: 8px;">
             ${!isOwned 
-              ? `<button class="btn-neon-sm" onclick="buyCar('${c.id}')">Купить $${c.price.toLocaleString()}</button>`
+              ? `<button class="btn-neon-sm" onclick="buyCar('${c.id}')">Купить<br>$${c.price.toLocaleString()}</button>`
               : `<button class="btn-neon-sm" style="background:${isSelected ? '#10b981' : '#3b82f6'}" onclick="selectCar('${c.id}')">${isSelected ? 'Выбрано' : 'Сесть за руль'}</button>`
             }
           </div>
         </div>
         ${isOwned ? `
           <div style="margin-top:12px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.1); display:flex; justify-content:space-between; align-items:center;">
-            <span style="font-size:11px; color:#9ca3af;">Сдача в аренду (Пассивный доход)</span>
+            <span style="font-size:11px; color:#9ca3af;">Сдача в аренду</span>
             ${hasDriver 
               ? `<span style="font-size:11px; color:#10b981; font-weight:bold;">В работе ✅</span>` 
-              : `<button class="btn-sm" style="width:auto; padding:4px 10px;" onclick="hireDriver('${c.id}')">Нанять за $${Math.floor(c.price * 0.25)}</button>`
+              : `<button class="btn-sm" style="width:auto; padding:4px 10px;" onclick="hireDriver('${c.id}')">Нанять за $${Math.floor(c.price * 0.25).toLocaleString()}</button>`
             }
           </div>
         ` : ''}
