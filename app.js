@@ -96,6 +96,7 @@ let currentUser = {
   first_name: tg?.initDataUnsafe?.user?.first_name || 'Гонщик',
   avatar_url: tg?.initDataUnsafe?.user?.photo_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${Math.random()}&backgroundColor=0f172a`,
   balance: 1500, 
+  total_earned: 1500, // <-- ДОБАВЛЕНО: Общий заработок за всю игру
   level: 1, 
   exp: 0, 
   rating: 4.80, 
@@ -145,6 +146,7 @@ function loadFromLocalStorage() {
       const parsed = JSON.parse(saved);
       if (parsed.telegram_id === currentUser.telegram_id || !tg.initDataUnsafe?.user) {
         currentUser = { ...currentUser, ...parsed };
+        if (!currentUser.total_earned) currentUser.total_earned = currentUser.balance; // Обратная совместимость
       }
     } catch(e) { console.error("Ошибка чтения LocalStorage", e); }
   }
@@ -154,7 +156,10 @@ async function syncWithDatabase() {
   if (!db || !currentUser.telegram_id) return;
   try {
     const { data, error } = await db.from('profiles').select('*').eq('telegram_id', currentUser.telegram_id).single();
-    if (data) currentUser = { ...currentUser, ...data };
+    if (data) {
+        currentUser = { ...currentUser, ...data };
+        if (!currentUser.total_earned) currentUser.total_earned = currentUser.balance; // Обратная совместимость
+    }
     localStorage.setItem('cyber_taxi_data', JSON.stringify(currentUser));
   } catch (e) {
     console.warn("Чтение профиля из БД ограничено RLS. Используем локальные данные.");
@@ -171,6 +176,7 @@ async function saveState() {
       p_first_name: currentUser.first_name,
       p_avatar_url: currentUser.avatar_url,
       p_balance: currentUser.balance,
+      p_total_earned: currentUser.total_earned, // <-- ДОБАВЛЕНО для БД
       p_level: currentUser.level,
       p_exp: currentUser.exp,
       p_rating: currentUser.rating,
@@ -288,6 +294,7 @@ function startGameLoops() {
     
     if (passiveIncome > 0) {
       currentUser.balance += passiveIncome;
+      currentUser.total_earned += passiveIncome; // Учитываем в общем заработке
       updateUI();
       saveState();
     }
@@ -412,6 +419,7 @@ function finishOrder(order, log, modal, fuelCost) {
   }
 
   currentUser.balance += finalReward;
+  currentUser.total_earned += finalReward; // Учитываем в общем заработке
   currentUser.total_trips += 1;
   addEXP(order.dist * 12);
   
@@ -582,39 +590,109 @@ function buyTuning(id) {
 }
 
 // ==========================================
-// ЗАЛ СЛАВЫ (БЕЗОПАСНЫЙ ЗАПРОС ЧЕРЕЗ RPC)
+// ЗАЛ СЛАВЫ (КРАСИВЫЙ ПОДИУМ И СПИСОК)
 // ==========================================
 async function loadLeaderboard() {
   const container = document.getElementById('leaderboard-list');
   if(!container) return;
   
+  container.innerHTML = `<div style="text-align:center; padding:20px; color:#3b82f6;">Загрузка данных нейросети...</div>`;
+  
   try {
     if (!db) throw new Error("Нет подключения к Supabase");
     
-    const { data, error } = await db.rpc('get_top_earners');
+    // Заменили 'get_top_earners' на 'get_top_by_earned' - ТОП ПО ОБЩЕМУ ЗАРАБОТКУ
+    const { data, error } = await db.rpc('get_top_by_earned');
       
     if (error) throw error;
     
     if (data && data.length > 0) {
-      container.innerHTML = data.map((item, i) => `
-        <div class="glass-card garage-item" style="display:flex; justify-content:space-between; align-items:center; padding: 12px 15px;">
-          <div style="display:flex; gap:10px; align-items:center;">
-            <b style="font-size: 16px; color: ${i === 0 ? '#f59e0b' : i === 1 ? '#9ca3af' : i === 2 ? '#d97706' : '#3b82f6'};">#${i + 1}</b> 
-            <span style="font-weight: 500;">${item.custom_nickname || item.first_name || 'Неизвестный'}</span>
-          </div>
-          <div style="color:#10b981; font-weight:bold; font-size: 15px;">$${Number(item.balance).toLocaleString()}</div>
-        </div>
-      `).join('');
-      return;
+      renderBeautifulLeaderboard(data, container);
     } else {
       container.innerHTML = `<div style="text-align:center; color:#9ca3af; font-size:12px; margin-top:20px;">Рейтинг пока пуст</div>`;
-      return;
     }
   } catch (err) {
     console.warn("Ошибка загрузки рейтинга:", err);
+    // В случае ошибки показываем заглушку, чтобы было видно визуал
     container.innerHTML = `<div style="text-align:center; color:#ef4444; font-size:12px; margin-top:20px;">Данные рейтинга недоступны. Проверьте БД.</div>`;
   }
 }
+
+function renderBeautifulLeaderboard(data, container) {
+  let html = '';
+  
+  // ================= ПОДИУМ (Топ-3) =================
+  if (data.length > 0) {
+    const top1 = data[0];
+    const top2 = data[1];
+    const top3 = data[2];
+
+    html += `<div class="podium-wrapper">`;
+    
+    // 2 место (слева)
+    if (top2) {
+      const earned2 = Number(top2.total_earned || top2.balance || 0).toLocaleString();
+      html += `
+        <div class="podium-step podium-2">
+          <img class="podium-avatar" src="${top2.avatar_url || 'https://api.dicebear.com/7.x/bottts/svg?seed='+top2.telegram_id+'&backgroundColor=0f172a'}" alt="2">
+          <div class="podium-name">${top2.custom_nickname || top2.first_name || 'Гонщик'}</div>
+          <div class="podium-score">$${earned2}</div>
+        </div>
+      `;
+    } else {
+      html += `<div class="podium-step podium-2" style="visibility:hidden;"></div>`;
+    }
+
+    // 1 место (центр)
+    const earned1 = Number(top1.total_earned || top1.balance || 0).toLocaleString();
+    html += `
+      <div class="podium-step podium-1">
+        <img class="podium-avatar" src="${top1.avatar_url || 'https://api.dicebear.com/7.x/bottts/svg?seed='+top1.telegram_id+'&backgroundColor=0f172a'}" alt="1">
+        <div class="podium-name" style="color:#f59e0b; font-size:13px; font-weight:900;">${top1.custom_nickname || top1.first_name || 'Гонщик'}</div>
+        <div class="podium-score" style="font-size:13px;">$${earned1}</div>
+      </div>
+    `;
+
+    // 3 место (справа)
+    if (top3) {
+      const earned3 = Number(top3.total_earned || top3.balance || 0).toLocaleString();
+      html += `
+        <div class="podium-step podium-3">
+          <img class="podium-avatar" src="${top3.avatar_url || 'https://api.dicebear.com/7.x/bottts/svg?seed='+top3.telegram_id+'&backgroundColor=0f172a'}" alt="3">
+          <div class="podium-name">${top3.custom_nickname || top3.first_name || 'Гонщик'}</div>
+          <div class="podium-score">$${earned3}</div>
+        </div>
+      `;
+    } else {
+      html += `<div class="podium-step podium-3" style="visibility:hidden;"></div>`;
+    }
+
+    html += `</div>`; // Конец подиума
+  }
+
+  // ================= СПИСОК (4+ места) =================
+  if (data.length > 3) {
+    html += `<div class="leaderboard-list">`;
+    for (let i = 3; i < data.length; i++) {
+      const player = data[i];
+      const earned = Number(player.total_earned || player.balance || 0).toLocaleString();
+      html += `
+        <div class="leader-row">
+          <div class="leader-rank">#${i + 1}</div>
+          <img class="leader-avatar" src="${player.avatar_url || 'https://api.dicebear.com/7.x/bottts/svg?seed='+player.telegram_id+'&backgroundColor=0f172a'}" alt="${i+1}">
+          <div class="leader-info">
+            <div class="leader-name">${player.custom_nickname || player.first_name || 'Гонщик'}</div>
+          </div>
+          <div class="leader-earned">$${earned}</div>
+        </div>
+      `;
+    }
+    html += `</div>`;
+  }
+
+  container.innerHTML = html;
+}
+
 
 // ==========================================
 // ГЛОБАЛЬНАЯ СТАТИСТИКА
