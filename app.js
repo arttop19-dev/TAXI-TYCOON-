@@ -16,11 +16,27 @@ if (tg) {
 // ЗВУКОВОЙ ДВИЖОК
 // ==========================================
 class SoundEngine {
-  constructor() { this.ctx = null; this.enabled = true; }
-  init() { if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); }
+  constructor() { 
+    this.ctx = null; 
+    this.enabled = true; 
+  }
+  
+  init() { 
+    if (!this.ctx) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) this.ctx = new AudioCtx();
+    } 
+  }
+
   play(type) {
     if (!this.enabled) return;
     this.init();
+    if (!this.ctx) return;
+
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume();
+    }
+
     const now = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
@@ -46,9 +62,11 @@ class SoundEngine {
   }
 }
 const audio = new SoundEngine();
+
 function toggleAudio() { 
   audio.enabled = !audio.enabled; 
-  document.getElementById('audio-toggle').innerText = audio.enabled ? '🔊' : '🔇'; 
+  const btn = document.getElementById('audio-toggle');
+  if (btn) btn.innerText = audio.enabled ? '🔊' : '🔇'; 
 }
 
 // ==========================================
@@ -63,14 +81,14 @@ const CARS = [
   // КОМФОРТ
   { id: 'passatb5', name: 'PASSAT B5', class: 'КОМФОРТ', cssClass: 'class-comfort', image: 'https://i.ibb.co.com/23wYDHd2/27-A556-C7-E2-C5-4189-B6-F7-42-F4-DD159907.png', price: 35000, reqLevel: 5, speed: 1.8, fuelDrain: 1.5, passive: 90, riskResist: 15 },
   { id: 'lexuslx', name: 'LEXUS LX 470', class: 'КОМФОРТ', cssClass: 'class-comfort', image: 'https://i.ibb.co.com/9kgCkDq9/018-D6-BB3-9-E53-41-F7-B1-EF-2809-C17643-DE.png', price: 65000, reqLevel: 6, speed: 2.0, fuelDrain: 1.8, passive: 150, riskResist: 20 },
-  { id: 'bmwe39', name: 'BMW e39', class: 'КОМФОРТ', cssClass: 'class-comfort', image: 'https://i.ibb.co.com/Jw1M84rw/5-https://i.ibb.co.com/8gNKAFDCBB0-D82-F-4-FA7-AB73-89-A945-B29501.png', price: 110000, reqLevel: 7, speed: 2.2, fuelDrain: 2.0, passive: 250, riskResist: 25 },
+  { id: 'bmwe39', name: 'BMW e39', class: 'КОМФОРТ', cssClass: 'class-comfort', image: 'https://i.ibb.co.com/8gNKAFDC/CBB0-D82-F-4-FA7-AB73-89-A945-B29501.png', price: 110000, reqLevel: 7, speed: 2.2, fuelDrain: 2.0, passive: 250, riskResist: 25 },
   { id: 'mercedes200', name: 'MERSEDES 200', class: 'КОМФОРТ', cssClass: 'class-comfort', image: 'https://i.ibb.co.com/S7PjhqHz/2559-D4-F7-27-BA-4985-8-A1-A-C349688-CCBE9.png', price: 180000, reqLevel: 8, speed: 2.4, fuelDrain: 2.1, passive: 350, riskResist: 30 },
   // БИЗНЕС
   { id: 'bmwx5', name: 'BMW X5', class: 'БИЗНЕС', cssClass: 'class-business', image: 'https://i.ibb.co.com/5hJ1cG5R/99474-E44-5570-418-C-A0-E0-ECE835-C58-E6-D.png', price: 300000, reqLevel: 10, speed: 2.8, fuelDrain: 2.5, passive: 550, riskResist: 40 },
   { id: 'changan', name: 'Changan Lamore', class: 'БИЗНЕС', cssClass: 'class-business', image: 'https://i.ibb.co.com/FqhMPv0q/FE7-A0-CBE-CC97-40-FC-9802-7-C1-B81-DFF540.png', price: 450000, reqLevel: 12, speed: 3.0, fuelDrain: 2.6, passive: 800, riskResist: 45 },
   // ЭЛИТА
-  { id: 'maybach', name: 'MAYBAX', class: 'ЭЛИТА', cssClass: 'class-elite', image: 'https://i.ibb.co.com/PzvLkkw5/1-E69-B68-A-C6-F4-4-E6-C-855-E-4-AECC34-A0-BA3.png', price: 800000, reqLevel: 15, speed: 3.5, fuelDrain: 3.0, passive: 1500, riskResist: 60 },
-  { id: 'panamera', name: 'PORSH PANAMERA', class: 'ЭЛИТА', cssClass: 'class-elite', image: 'https://i.ibb.co.com/prQ1RWSZ/6793-F77-B-DD6-E-4-B92-87-E2-20-EB26-FC8-C11.png', price: 1500000, reqLevel: 18, speed: 4.0, fuelDrain: 3.5, passive: 2500, riskResist: 75 }
+  { id: 'maybach', name: 'MAYBACH', class: 'ЭЛИТА', cssClass: 'class-elite', image: 'https://i.ibb.co.com/PzvLkkw5/1-E69-B68-A-C6-F4-4-E6-C-855-E-4-AECC34-A0-BA3.png', price: 800000, reqLevel: 15, speed: 3.5, fuelDrain: 3.0, passive: 1500, riskResist: 60 },
+  { id: 'panamera', name: 'PORSCHE PANAMERA', class: 'ЭЛИТА', cssClass: 'class-elite', image: 'https://i.ibb.co.com/prQ1RWSZ/6793-F77-B-DD6-E-4-B92-87-E2-20-EB26-FC8-C11.png', price: 1500000, reqLevel: 18, speed: 4.0, fuelDrain: 3.5, passive: 2500, riskResist: 75 }
 ];
 
 const TUNING = [
@@ -112,7 +130,9 @@ let engineCond = 100;
 let currentWeather = WEATHERS[0];
 let activeOrders = [];
 let isDriving = false;
-let autoSaveInterval;
+let weatherInterval = null;
+let passiveIncomeInterval = null;
+let autoSaveInterval = null;
 
 // ==========================================
 // ЗАПУСК И СИНХРОНИЗАЦИЯ
@@ -135,7 +155,6 @@ window.onload = async () => {
 
   updateUI();
   simulateLoading();
-  startGameLoops();
 };
 
 function loadFromLocalStorage() {
@@ -143,10 +162,12 @@ function loadFromLocalStorage() {
   if (saved) {
     try {
       const parsed = JSON.parse(saved);
-      if (parsed.telegram_id === currentUser.telegram_id || !tg.initDataUnsafe?.user) {
+      if (parsed.telegram_id === currentUser.telegram_id || !tg?.initDataUnsafe?.user) {
         currentUser = { ...currentUser, ...parsed };
       }
-    } catch(e) { console.error("Ошибка чтения LocalStorage", e); }
+    } catch(e) { 
+      console.error("Ошибка чтения LocalStorage", e); 
+    }
   }
 }
 
@@ -154,10 +175,12 @@ async function syncWithDatabase() {
   if (!db || !currentUser.telegram_id) return;
   try {
     const { data, error } = await db.from('profiles').select('*').eq('telegram_id', currentUser.telegram_id).single();
-    if (data) currentUser = { ...currentUser, ...data };
-    localStorage.setItem('cyber_taxi_data', JSON.stringify(currentUser));
+    if (data) {
+      currentUser = { ...currentUser, ...data };
+      localStorage.setItem('cyber_taxi_data', JSON.stringify(currentUser));
+    }
   } catch (e) {
-    console.warn("Чтение профиля из БД ограничено RLS. Используем локальные данные.");
+    console.warn("Чтение профиля из БД ограничено или отсутствуют данные.");
   }
 }
 
@@ -180,7 +203,7 @@ async function saveState() {
     
     if (error) throw error;
   } catch (e) {
-    console.warn("Ошибка сохранения в БД:", e);
+    console.warn("Ошибка сохранения в БД:", e.message || e);
   }
 }
 
@@ -239,8 +262,8 @@ function simulateLoading() {
       clearInterval(int);
       if(log) log.innerText = "> Система готова.";
       setTimeout(() => {
-        document.getElementById('loader-block').classList.add('hidden');
-        document.getElementById('start-block').classList.remove('hidden');
+        document.getElementById('loader-block')?.classList.add('hidden');
+        document.getElementById('start-block')?.classList.remove('hidden');
       }, 600);
     }
   }, 120);
@@ -248,8 +271,8 @@ function simulateLoading() {
 
 function startGame() {
   audio.play('click');
-  document.getElementById('splash-screen').classList.add('hidden');
-  document.getElementById('main-game').classList.remove('hidden');
+  document.getElementById('splash-screen')?.classList.add('hidden');
+  document.getElementById('main-game')?.classList.remove('hidden');
   
   const bestCarId = currentUser.owned_cars[currentUser.owned_cars.length - 1];
   currentCar = CARS.find(c => c.id === bestCarId) || CARS[0];
@@ -260,13 +283,18 @@ function startGame() {
   loadLeaderboard();
   loadGlobalStats();
   updateUI();
+  startGameLoops();
 }
 
 // ==========================================
 // ИГРОВЫЕ ЦИКЛЫ
 // ==========================================
 function startGameLoops() {
-  setInterval(() => {
+  if (weatherInterval) clearInterval(weatherInterval);
+  if (passiveIncomeInterval) clearInterval(passiveIncomeInterval);
+  if (autoSaveInterval) clearInterval(autoSaveInterval);
+
+  weatherInterval = setInterval(() => {
     currentWeather = WEATHERS[Math.floor(Math.random() * WEATHERS.length)];
     const wIcon = document.getElementById('weather-icon');
     const wName = document.getElementById('weather-name');
@@ -279,7 +307,7 @@ function startGameLoops() {
     if (!isDriving) generateOrders();
   }, 90000);
 
-  setInterval(() => {
+  passiveIncomeInterval = setInterval(() => {
     let passiveIncome = 0;
     currentUser.auto_drivers.forEach(id => {
       const c = CARS.find(x => x.id === id);
@@ -334,6 +362,7 @@ function generateOrders() {
 }
 
 function takeOrder(orderId) {
+  if (isDriving) return;
   const order = activeOrders.find(o => o.id === orderId);
   if (!order) return;
   
@@ -353,8 +382,9 @@ function takeOrder(orderId) {
   const log = document.getElementById('trip-event-log');
   const speedTxt = document.getElementById('trip-speed');
   
-  modal.classList.remove('hidden');
-  document.getElementById('trip-route').innerText = `${order.from} ➔ ${order.to}`;
+  if (modal) modal.classList.remove('hidden');
+  const routeElem = document.getElementById('trip-route');
+  if (routeElem) routeElem.innerText = `${order.from} ➔ ${order.to}`;
   
   let speedMult = currentCar.speed;
   if (currentUser.upgrades.includes('chip')) speedMult *= 1.25;
@@ -365,8 +395,8 @@ function takeOrder(orderId) {
 
   const tripInt = setInterval(() => {
     progress += (speedMult * 1.5);
-    fill.style.width = Math.min(progress, 100) + '%';
-    speedTxt.innerText = `${Math.floor(60 * speedMult + Math.random()*15)} км/ч`;
+    if (fill) fill.style.width = Math.min(progress, 100) + '%';
+    if (speedTxt) speedTxt.innerText = `${Math.floor(60 * speedMult + Math.random()*15)} км/ч`;
 
     if (progress > 35 && progress < 65 && !hasEvent) {
       hasEvent = true;
@@ -375,20 +405,26 @@ function takeOrder(orderId) {
       const rand = Math.random();
       if (rand < riskChance) {
          audio.play('crash');
-         log.innerText = "⚠️ Пробито колесо! Скорость снижена, машина повреждена.";
-         log.style.color = "#ef4444";
+         if (log) {
+           log.innerText = "⚠️ Пробито колесо! Скорость снижена, машина повреждена.";
+           log.style.color = "#ef4444";
+         }
          speedMult *= 0.6;
          engineCond -= Math.floor(Math.random() * 15 + 10);
       } else if (rand > 0.7 && rand < 0.85 && !currentUser.upgrades.includes('radar')) {
          audio.play('police');
-         log.innerText = "🚓 Камера ДПС! Штраф за превышение скорости.";
-         log.style.color = "#f59e0b";
+         if (log) {
+           log.innerText = "🚓 Камера ДПС! Штраф за превышение скорости.";
+           log.style.color = "#f59e0b";
+         }
          const penalty = Math.floor(order.reward * 0.2);
          order.reward -= penalty;
       } else if (rand >= 0.85) {
          audio.play('coin');
-         log.innerText = "💬 Клиенту нравится стиль вождения. Настроение +";
-         log.style.color = "#10b981";
+         if (log) {
+           log.innerText = "💬 Клиенту нравится стиль вождения. Настроение +";
+           log.style.color = "#10b981";
+         }
          order.reward += Math.floor(order.reward * 0.2);
       }
     }
@@ -416,17 +452,21 @@ function finishOrder(order, log, modal, fuelCost) {
   addEXP(order.dist * 12);
   
   audio.play('coin');
-  log.innerText = `✅ Маршрут завершен! Заработано: $${finalReward}`;
-  log.style.color = "#10b981";
+  if (log) {
+    log.innerText = `✅ Маршрут завершен! Заработано: $${finalReward}`;
+    log.style.color = "#10b981";
+  }
   
   updateUI();
   saveState();
   generateOrders();
 
   setTimeout(() => {
-    modal.classList.add('hidden');
-    log.innerText = "Навигатор построен. Движение начато...";
-    log.style.color = "#60a5fa";
+    if (modal) modal.classList.add('hidden');
+    if (log) {
+      log.innerText = "Навигатор построен. Движение начато...";
+      log.style.color = "#60a5fa";
+    }
   }, 2200);
 }
 
@@ -445,6 +485,7 @@ function addEXP(amt) {
 // ==========================================
 function refuel() {
   audio.play('click');
+  if (isDriving) return triggerToast('⚠️ Нельзя заправляться во время рейса!');
   if (fuel >= 100) return triggerToast('⛽ Бак уже полон!');
   if (currentUser.balance < 250) return triggerToast('❌ Недостаточно средств!');
   currentUser.balance -= 250; 
@@ -456,6 +497,7 @@ function refuel() {
 
 function repairCar() {
   audio.play('click');
+  if (isDriving) return triggerToast('⚠️ Нельзя ремонтировать во время рейса!');
   if (engineCond >= 100) return triggerToast('🔧 Автомобиль в идеальном состоянии!');
   if (currentUser.balance < 600) return triggerToast('❌ Недостаточно средств!');
   currentUser.balance -= 600; 
@@ -469,7 +511,9 @@ function repairCar() {
 // ГАРАЖ И АВТОСАЛОН
 // ==========================================
 function renderGarage() {
-  document.getElementById('current-car-name').innerText = currentCar.name;
+  const carNameElem = document.getElementById('current-car-name');
+  if (carNameElem) carNameElem.innerText = currentCar.name;
+  
   const container = document.getElementById('garage-list');
   if(!container) return;
 
@@ -480,7 +524,7 @@ function renderGarage() {
     return `
       <div class="glass-card garage-item">
         <div class="car-image-container">
-           <img src="${c.image}" alt="${c.name}">
+           <img src="${c.image}" alt="${c.name}" onerror="this.onerror=null;this.src='https://api.dicebear.com/7.x/shapes/svg?seed=car';">
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <div>
@@ -515,6 +559,7 @@ function renderGarage() {
 function buyCar(id) {
   audio.play('click');
   const c = CARS.find(x => x.id === id);
+  if (!c) return;
   if (currentUser.level < c.reqLevel) return triggerToast(`🔒 Требуется Уровень ${c.reqLevel}!`);
   if (currentUser.balance < c.price) return triggerToast('❌ Недостаточно средств!');
   
@@ -527,14 +572,18 @@ function buyCar(id) {
 
 function selectCar(id) {
   audio.play('click');
-  currentCar = CARS.find(x => x.id === id);
-  updateUI();
-  renderGarage();
+  const target = CARS.find(x => x.id === id);
+  if (target) {
+    currentCar = target;
+    updateUI();
+    renderGarage();
+  }
 }
 
 function hireDriver(id) {
   audio.play('click');
   const c = CARS.find(x => x.id === id);
+  if (!c) return;
   const cost = Math.floor(c.price * 0.25);
   if (currentUser.balance < cost) return triggerToast('❌ Недостаточно средств на найм!');
   
@@ -572,6 +621,7 @@ function buyTuning(id) {
   audio.play('click');
   if (currentUser.upgrades.includes(id)) return;
   const t = TUNING.find(x => x.id === id);
+  if (!t) return;
   if (currentUser.balance < t.price) return triggerToast('❌ Недостаточно средств на установку!');
   
   currentUser.balance -= t.price;
@@ -598,21 +648,26 @@ async function loadLeaderboard() {
 
     const leaders = data || [];
 
-    // Заполняем подиум Топ-3
-    if (leaders[0]) {
-      document.getElementById('podium-1-name').innerText = leaders[0].custom_nickname || leaders[0].first_name || 'King #1';
-      document.getElementById('podium-1-score').innerText = `$${Number(leaders[0].balance).toLocaleString()}`;
+    const p1Name = document.getElementById('podium-1-name');
+    const p1Score = document.getElementById('podium-1-score');
+    const p2Name = document.getElementById('podium-2-name');
+    const p2Score = document.getElementById('podium-2-score');
+    const p3Name = document.getElementById('podium-3-name');
+    const p3Score = document.getElementById('podium-3-score');
+
+    if (leaders[0] && p1Name && p1Score) {
+      p1Name.innerText = leaders[0].custom_nickname || leaders[0].first_name || 'King #1';
+      p1Score.innerText = `$${Number(leaders[0].balance).toLocaleString()}`;
     }
-    if (leaders[1]) {
-      document.getElementById('podium-2-name').innerText = leaders[1].custom_nickname || leaders[1].first_name || 'Driver #2';
-      document.getElementById('podium-2-score').innerText = `$${Number(leaders[1].balance).toLocaleString()}`;
+    if (leaders[1] && p2Name && p2Score) {
+      p2Name.innerText = leaders[1].custom_nickname || leaders[1].first_name || 'Driver #2';
+      p2Score.innerText = `$${Number(leaders[1].balance).toLocaleString()}`;
     }
-    if (leaders[2]) {
-      document.getElementById('podium-3-name').innerText = leaders[2].custom_nickname || leaders[2].first_name || 'Driver #3';
-      document.getElementById('podium-3-score').innerText = `$${Number(leaders[2].balance).toLocaleString()}`;
+    if (leaders[2] && p3Name && p3Score) {
+      p3Name.innerText = leaders[2].custom_nickname || leaders[2].first_name || 'Driver #3';
+      p3Score.innerText = `$${Number(leaders[2].balance).toLocaleString()}`;
     }
 
-    // Ищем позицию текущего игрока в общем списке
     const myIndex = leaders.findIndex(u => String(u.telegram_id) === String(currentUser.telegram_id));
     const myName = currentUser.custom_nickname || currentUser.first_name || 'Водитель';
 
@@ -628,14 +683,13 @@ async function loadLeaderboard() {
       }
     }
 
-    // Рендерим остальных участников с 4-го места и ниже
     if (listContainer) {
       if (leaders.length > 3) {
         let html = '';
         for (let i = 3; i < leaders.length; i++) {
           const user = leaders[i];
           html += `
-            <div class="glass-card garage-item" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: 10px; background: rgba(15,23,42,0.6);">
+            <div class="glass-card garage-item" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: 10px; background: rgba(15,23,42,0.6); margin-bottom: 8px;">
               <div style="display: flex; align-items: center; gap: 12px;">
                 <span style="font-size: 12px; font-weight: bold; color: #64748b; width: 24px;">#${i + 1}</span>
                 <span style="font-size: 13px; font-weight: bold; color: #e2e8f0;">${user.custom_nickname || user.first_name || 'Водитель'}</span>
@@ -666,7 +720,7 @@ async function loadGlobalStats() {
   const elEarned = document.getElementById('stat-earned');
   const elTrips = document.getElementById('stat-trips');
   
-  if (!elPlayers || !db) return;
+  if (!db) return;
   
   try {
     const { data, error } = await db.rpc('get_global_stats');
@@ -674,9 +728,9 @@ async function loadGlobalStats() {
     
     if (data && data.length > 0) {
       const stats = data[0];
-      elPlayers.textContent = Number(stats.total_players || 0).toLocaleString();
-      elEarned.textContent = `$${Number(stats.total_earned || 0).toLocaleString()}`;
-      elTrips.textContent = Number(stats.total_trips || 0).toLocaleString();
+      if (elPlayers) elPlayers.textContent = Number(stats.total_players || 0).toLocaleString();
+      if (elEarned) elEarned.textContent = `$${Number(stats.total_earned || 0).toLocaleString()}`;
+      if (elTrips) elTrips.textContent = Number(stats.total_trips || 0).toLocaleString();
     }
   } catch (err) {
     console.warn("Ошибка загрузки глобальной статистики:", err);
@@ -688,7 +742,9 @@ async function loadGlobalStats() {
 // ==========================================
 function saveNickname() {
   audio.play('click');
-  const val = document.getElementById('input-nickname').value.trim();
+  const input = document.getElementById('input-nickname');
+  if (!input) return;
+  const val = input.value.trim();
   if (val.length < 2 || val.length > 15) return triggerToast('❌ Никнейм должен быть от 2 до 15 символов!');
   
   currentUser.custom_nickname = val;
@@ -710,7 +766,8 @@ function switchTab(tab) {
   document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
   document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
   
-  document.getElementById('tab-' + tab).classList.remove('hidden');
+  const targetTab = document.getElementById('tab-' + tab);
+  if (targetTab) targetTab.classList.remove('hidden');
   
   const btns = document.querySelectorAll('.nav-btn');
   for (let btn of btns) {
@@ -727,18 +784,27 @@ function switchTab(tab) {
 }
 
 function updateUI() {
-  document.getElementById('balance').innerText = '$' + Number(currentUser.balance).toLocaleString();
-  document.getElementById('header-level').innerText = currentUser.level;
-  document.getElementById('exp-bar').style.width = Math.min((currentUser.exp / (currentUser.level * 180)) * 100, 100) + '%';
+  const balElem = document.getElementById('balance');
+  if (balElem) balElem.innerText = '$' + Number(currentUser.balance).toLocaleString();
   
-  document.getElementById('fuel-val').innerText = Math.floor(fuel) + '%';
+  const lvlElem = document.getElementById('header-level');
+  if (lvlElem) lvlElem.innerText = currentUser.level;
+  
+  const expBarElem = document.getElementById('exp-bar');
+  if (expBarElem) expBarElem.style.width = Math.min((currentUser.exp / (currentUser.level * 180)) * 100, 100) + '%';
+  
+  const fuelValElem = document.getElementById('fuel-val');
+  if (fuelValElem) fuelValElem.innerText = Math.floor(fuel) + '%';
+  
   const fBar = document.getElementById('fuel-bar');
   if(fBar) {
     fBar.style.width = fuel + '%';
     fBar.style.background = fuel > 30 ? '#3b82f6' : '#ef4444';
   }
   
-  document.getElementById('engine-val').innerText = Math.floor(engineCond) + '%';
+  const engValElem = document.getElementById('engine-val');
+  if (engValElem) engValElem.innerText = Math.floor(engineCond) + '%';
+  
   const eBar = document.getElementById('engine-bar');
   if(eBar) {
     eBar.style.width = engineCond + '%';
