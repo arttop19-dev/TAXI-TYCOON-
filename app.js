@@ -202,6 +202,8 @@ async function saveState() {
     });
     
     if (error) throw error;
+    
+    await loadGlobalStats();
   } catch (e) {
     console.warn("Ошибка сохранения в БД:", e.message || e);
   }
@@ -831,5 +833,7 @@ function updateUI() {
   if(pExp) pExp.innerText = currentUser.exp;
   
   const pAvatar = document.getElementById('profile-avatar');
-  if (pAvatar && currentUser.avatar_url) pAvatar.src = currentUser.avatar_url;
+  if (pAvatar) {
+    pAvatar.src = 'https://i.ibb.co.com/TMF6jVR4/5-B266-CE0-04-EA-4-B8-B-9-BDC-30773692813-E.png';
+  }
 }
