@@ -81,7 +81,7 @@ const CARS = [
   // КОМФОРТ
   { id: 'passatb5', name: 'PASSAT B5', class: 'КОМФОРТ', cssClass: 'class-comfort', image: 'https://i.ibb.co.com/23wYDHd2/27-A556-C7-E2-C5-4189-B6-F7-42-F4-DD159907.png', price: 35000, reqLevel: 5, speed: 1.8, fuelDrain: 1.5, passive: 90, riskResist: 15 },
   { id: 'lexuslx', name: 'LEXUS LX 470', class: 'КОМФОРТ', cssClass: 'class-comfort', image: 'https://i.ibb.co.com/9kgCkDq9/018-D6-BB3-9-E53-41-F7-B1-EF-2809-C17643-DE.png', price: 65000, reqLevel: 6, speed: 2.0, fuelDrain: 1.8, passive: 150, riskResist: 20 },
-  { id: 'bmwe39', name: 'BMW e39', class: 'КОМФОРТ', cssClass: 'class-comfort', image: 'https://i.ibb.co.com/8gNKAFDC/CBB0-D82-F-4-FA7-AB73-89-A945-B29501.png', price: 110000, reqLevel: 7, speed: 2.2, fuelDrain: 2.0, passive: 250, riskResist: 25 },
+  { id: 'bmwe39', name: 'BMW e39', class: 'КОМФОРТ', cssClass: 'class-comfort', image: 'https://i.ibb.co.com/PZWgL2mK/5-AFDCBB0-D82-F-4-FA7-AB73-89-A945-B29501.png', price: 110000, reqLevel: 7, speed: 2.2, fuelDrain: 2.0, passive: 250, riskResist: 25 },
   { id: 'mercedes200', name: 'MERSEDES 200', class: 'КОМФОРТ', cssClass: 'class-comfort', image: 'https://i.ibb.co.com/S7PjhqHz/2559-D4-F7-27-BA-4985-8-A1-A-C349688-CCBE9.png', price: 180000, reqLevel: 8, speed: 2.4, fuelDrain: 2.1, passive: 350, riskResist: 30 },
   // БИЗНЕС
   { id: 'bmwx5', name: 'BMW X5', class: 'БИЗНЕС', cssClass: 'class-business', image: 'https://i.ibb.co.com/5hJ1cG5R/99474-E44-5570-418-C-A0-E0-ECE835-C58-E6-D.png', price: 300000, reqLevel: 10, speed: 2.8, fuelDrain: 2.5, passive: 550, riskResist: 40 },
