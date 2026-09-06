@@ -92,10 +92,10 @@ const CARS = [
 ];
 
 const TUNING = [
-  { id: 'chip', name: 'Чип-тюнинг ЭБУ Stage 2', price: 15000, desc: 'Скорость в рейсе +25%' },
-  { id: 'aero', name: 'Аэродинамический обвес', price: 25000, desc: 'Расход топлива -20%' },
-  { id: 'vip', name: 'Кожаный салон Nappa', price: 50000, desc: 'Шанс на чаевые +40%' },
-  { id: 'radar', name: 'Антирадар PRO', price: 85000, desc: 'Защита от штрафов ДПС' }
+  { id: 'chip', name: 'Чип-тюнинг ЭБУ Stage 2', price: 15000, desc: 'Скорость в рейсе +25%', image: 'https://i.ibb.co.com/vCz1LP2s/021-ABBE4-CD11-4204-89-CA-002-F2-CCC6-A03.png' },
+  { id: 'aero', name: 'Аэродинамический обвес YX', price: 25000, desc: 'Расход топлива -20%', image: 'https://i.ibb.co.com/H9RN4f3/EE07-BFB1-CFCF-447-A-B3-F4-A1-D5-F4-E7-CA9-F.png' },
+  { id: 'vip', name: 'Кожаный салон Nappa', price: 50000, desc: 'Шанс на чаевые +40%', image: 'https://i.ibb.co.com/nqr0r3DL/745-CB319-E04-D-4-A1-C-B462-5-E461-EC7-AADF.png' },
+  { id: 'radar', name: 'Антирадар PRO', price: 85000, desc: 'Защита от штрафов ДПС', image: 'https://i.ibb.co.com/9HCgwB9N/C6162-C25-5302-46-FC-BC05-2670305-BEA2-C.png' }
 ];
 
 const LOCATIONS = ['Астана-Центр', 'Аулиеколь', 'Атбасар', 'Костанай-Сити', 'Аэропорт NQZ', 'Кибер-Район', 'Промзона'];
@@ -604,10 +604,15 @@ function renderTuning() {
   container.innerHTML = TUNING.map(t => {
     const isBought = currentUser.upgrades.includes(t.id);
     return `
-      <div class="glass-card garage-item" style="display:flex; justify-content:space-between; align-items:center;">
-        <div>
-          <b style="font-size:14px;">${t.name}</b>
-          <div style="font-size:11px; color:#10b981; margin-top:4px;">${t.desc}</div>
+      <div class="glass-card garage-item" style="display:flex; align-items:center; gap:12px; justify-content:space-between;">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div class="tuning-image-container" style="width:58px; height:58px; min-width:58px; border-radius:10px; overflow:hidden; background:rgba(0,0,0,0.4); display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.1);">
+            <img src="${t.image}" alt="${t.name}" style="width:100%; height:100%; object-fit:cover;" onerror="this.onerror=null;this.src='https://api.dicebear.com/7.x/shapes/svg?seed=tuning';">
+          </div>
+          <div>
+            <b style="font-size:14px; color:#f8fafc;">${t.name}</b>
+            <div style="font-size:11px; color:#10b981; margin-top:4px;">${t.desc}</div>
+          </div>
         </div>
         <button class="btn-neon-sm" onclick="buyTuning('${t.id}')" style="${isBought ? 'background:#374151; color:#9ca3af; cursor:not-allowed;' : ''}">
           ${isBought ? 'Установлено' : '$' + t.price.toLocaleString()}
