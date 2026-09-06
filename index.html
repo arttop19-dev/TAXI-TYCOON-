@@ -8,7 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="style.css">
   <style>
-    /* Стили для загрузочного экрана */
+    /* Стили для нового загрузочного экрана */
     #splash-screen {
       background: url('https://i.ibb.co.com/JRhNrLrG/C4-EF43-E7-357-D-4034-900-C-3-EBF8-D4-C768-C.png') center/cover no-repeat;
       display: flex;
@@ -50,7 +50,7 @@
       100% { box-shadow: 0 0 10px rgba(16,185,129,0.2); transform: scale(1); }
     }
     
-    /* Стили для карточек машин и тюнинга с изображениями */
+    /* Стили для карточек машин с изображениями */
     .car-image-container {
       width: 100%;
       height: 150px;
@@ -81,46 +81,79 @@
     .class-business { background: #f59e0b; color: #000; }
     .class-elite { background: #ef4444; color: #fff; box-shadow: 0 0 8px rgba(239, 68, 68, 0.6); }
 
-    .tuning-card {
-      background: rgba(15, 23, 42, 0.75);
-      border: 1px solid rgba(59, 130, 246, 0.2);
-      border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 12px;
-      backdrop-filter: blur(10px);
-      transition: all 0.3s ease;
+    /* Стили для насыщенной вкладки Тюнинга */
+    .tuning-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 15px;
     }
-    .tuning-image-container {
+    .tuning-card {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      border-radius: 12px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    }
+    .tuning-card:active {
+      transform: scale(0.96);
+    }
+    .tuning-img-wrapper {
       width: 100%;
-      height: 120px;
+      height: 90px;
       border-radius: 8px;
       overflow: hidden;
       margin-bottom: 10px;
-      border: 1px solid rgba(59, 130, 246, 0.4);
-      background: rgba(0, 0, 0, 0.6);
-    }
-    .tuning-image-container img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-    .tuning-info-row {
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, rgba(0,0,0,0.6) 100%);
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      margin-bottom: 6px;
+      justify-content: center;
+    }
+    .tuning-img-wrapper img {
+      width: 90%;
+      height: 90%;
+      object-fit: contain;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
     }
     .tuning-title {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: bold;
       color: #fff;
+      margin-bottom: 4px;
+      line-height: 1.2;
+      height: 32px;
     }
-    .tuning-desc {
-      font-size: 11px;
+    .tuning-stat {
+      font-size: 10px;
       color: #9ca3af;
       margin-bottom: 10px;
-      line-height: 1.3;
+      background: rgba(255,255,255,0.05);
+      padding: 4px 8px;
+      border-radius: 4px;
+      width: 100%;
+    }
+    .tuning-buy-btn {
+      width: 100%;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid #10b981;
+      color: #10b981;
+      border-radius: 6px;
+      padding: 8px 0;
+      font-size: 12px;
+      font-weight: bold;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.2);
+    }
+    .tuning-buy-btn:hover {
+      background: rgba(16, 185, 129, 0.2);
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
     }
   </style>
 </head>
@@ -215,76 +248,53 @@
 
       <!-- Вкладка: Тюнинг -->
       <section id="tab-tuning" class="tab-content hidden">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-          <h2 style="font-size: 16px; margin: 0;">Мастерская</h2>
-          <span style="font-size: 11px; color: #3b82f6;">Апгрейд систем авто</span>
+        <div class="leaders-header-panel glass-glow" style="margin-bottom: 15px; padding: 15px; border-radius: 12px; text-align: center; background: linear-gradient(135deg, rgba(15,23,42,0.9), rgba(59,130,246,0.15)); border: 1px solid rgba(59,130,246,0.3);">
+          <h2 style="font-size: 18px; color: #60a5fa; margin-bottom: 4px; text-shadow: 0 0 10px rgba(96,165,250,0.5);">🛠️ ТЮНИНГ-АТЕЛЬЕ</h2>
+          <p style="font-size: 11px; color: #9ca3af;">Прокачай свою тачку для максимального заработка и скорости</p>
         </div>
-        <p class="sub-text" style="margin-bottom: 15px;">Прокачай характеристики машины, чтобы брать элитные заказы и зарабатывать больше.</p>
-        
-        <div id="tuning-list">
+
+        <div id="tuning-list" class="tuning-grid">
+          
           <!-- Чип тюнинг Stage 2 -->
-          <div class="tuning-card">
-            <div class="tuning-image-container">
-              <img src="https://i.ibb.co.com/vCz1LP2s/021-ABBE4-CD11-4204-89-CA-002-F2-CCC6-A03.png" alt="Чип тюнинг Stage 2">
+          <div class="tuning-card glass-glow">
+            <div class="tuning-img-wrapper" style="background: radial-gradient(circle, rgba(245,158,11,0.15) 0%, rgba(0,0,0,0.6) 100%);">
+              <img src="https://i.ibb.co.com/vCz1LP2s/021-ABBE4-CD11-4204-89-CA-002-F2-CCC6-A03.png" alt="Stage 2">
             </div>
-            <div class="tuning-info-row">
-              <div class="tuning-title">Чип-тюнинг ЭБУ Stage 2</div>
-              <span class="car-class-badge class-comfort">Движок</span>
-            </div>
-            <div class="tuning-desc">Скорость в рейсе +25%</div>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 13px; font-weight: bold; color: #f59e0b;" id="price-stage2">$15 000</span>
-              <button class="btn-sm" id="btn-stage2" onclick="buyTuning('stage2')">Установить</button>
-            </div>
+            <div class="tuning-title">Чип тюнинг<br><span style="color:#f59e0b">Stage 2</span></div>
+            <div class="tuning-stat">🚀 Скорость +15%</div>
+            <button class="tuning-buy-btn" onclick="buyTuning('stage2')">$ 2,500</button>
           </div>
 
           <!-- Аэродинамический обвес YX -->
-          <div class="tuning-card">
-            <div class="tuning-image-container">
-              <img src="https://i.ibb.co.com/H9RN4f3/EE07-BFB1-CFCF-447-A-B3-F4-A1-D5-F4-E7-CA9-F.png" alt="Аэродинамический обвес YX">
+          <div class="tuning-card glass-glow">
+            <div class="tuning-img-wrapper">
+              <img src="https://i.ibb.co.com/H9RN4f3/EE07-BFB1-CFCF-447-A-B3-F4-A1-D5-F4-E7-CA9-F.png" alt="Обвес YX">
             </div>
-            <div class="tuning-info-row">
-              <div class="tuning-title">Аэродинамический обвес YX</div>
-              <span class="car-class-badge class-business">Экстерьер</span>
-            </div>
-            <div class="tuning-desc">Расход топлива -20%</div>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 13px; font-weight: bold; color: #f59e0b;" id="price-bodyyx">$25 000</span>
-              <button class="btn-sm" id="btn-bodyyx" onclick="buyTuning('bodyyx')">Установить</button>
-            </div>
+            <div class="tuning-title">Аэро-обвес<br><span style="color:#60a5fa">Линия YX</span></div>
+            <div class="tuning-stat">⛽ Расход -10%</div>
+            <button class="tuning-buy-btn" onclick="buyTuning('bodykit')">$ 3,200</button>
           </div>
 
           <!-- Кожаный салон Nappa -->
-          <div class="tuning-card">
-            <div class="tuning-image-container">
-              <img src="https://i.ibb.co.com/nqr0r3DL/745-CB319-E04-D-4-A1-C-B462-5-E461-EC7-AADF.png" alt="Кожаный салон Nappa">
+          <div class="tuning-card glass-glow">
+            <div class="tuning-img-wrapper" style="background: radial-gradient(circle, rgba(16,185,129,0.15) 0%, rgba(0,0,0,0.6) 100%);">
+              <img src="https://i.ibb.co.com/nqr0r3DL/745-CB319-E04-D-4-A1-C-B462-5-E461-EC7-AADF.png" alt="Салон Nappa">
             </div>
-            <div class="tuning-info-row">
-              <div class="tuning-title">Кожаный салон Nappa</div>
-              <span class="car-class-badge class-elite">Интерьер</span>
-            </div>
-            <div class="tuning-desc">Шанс на чаевые +40%</div>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 13px; font-weight: bold; color: #f59e0b;" id="price-nappa">$50 000</span>
-              <button class="btn-sm" id="btn-nappa" onclick="buyTuning('nappa')">Установить</button>
-            </div>
+            <div class="tuning-title">Кожаный салон<br><span style="color:#10b981">Nappa</span></div>
+            <div class="tuning-stat">💎 Чаевые +20%</div>
+            <button class="tuning-buy-btn" onclick="buyTuning('interior')">$ 4,500</button>
           </div>
 
           <!-- Антирадар PRO -->
-          <div class="tuning-card">
-            <div class="tuning-image-container">
+          <div class="tuning-card glass-glow">
+            <div class="tuning-img-wrapper" style="background: radial-gradient(circle, rgba(239,68,68,0.15) 0%, rgba(0,0,0,0.6) 100%);">
               <img src="https://i.ibb.co.com/9HCgwB9N/C6162-C25-5302-46-FC-BC05-2670305-BEA2-C.png" alt="Антирадар PRO">
             </div>
-            <div class="tuning-info-row">
-              <div class="tuning-title">Антирадар PRO</div>
-              <span class="car-class-badge class-econom">Безопасность</span>
-            </div>
-            <div class="tuning-desc">Защита от штрафов ДПС</div>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 13px; font-weight: bold; color: #f59e0b;" id="price-radar">$85 000</span>
-              <button class="btn-sm" id="btn-radar" onclick="buyTuning('radar')">Установить</button>
-            </div>
+            <div class="tuning-title">Антирадар<br><span style="color:#ef4444">PRO X-Series</span></div>
+            <div class="tuning-stat">🚨 Штрафы -100%</div>
+            <button class="tuning-buy-btn" onclick="buyTuning('radar')">$ 1,800</button>
           </div>
+
         </div>
       </section>
 
